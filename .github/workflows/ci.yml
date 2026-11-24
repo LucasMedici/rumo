@@ -19,8 +19,11 @@ jobs:
     timeout-minutes: 15
     env:
       NEXT_TELEMETRY_DISABLED: 1
-      # Public value inlined into the web build; no secrets are needed in CI.
+      # Public placeholder values inlined into the web build; no secrets are needed in CI.
       NEXT_PUBLIC_API_URL: http://localhost:3333
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
 
     steps:
       - uses: actions/checkout@v5

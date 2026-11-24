@@ -21,11 +21,15 @@ export class ApiError extends Error {
 export async function apiFetch<TSchema extends z.ZodType>(
   path: string,
   schema: TSchema,
-  init?: RequestInit,
+  { accessToken, ...init }: RequestInit & { accessToken?: string } = {},
 ): Promise<z.infer<TSchema>> {
   const response = await fetch(new URL(path, publicEnv.NEXT_PUBLIC_API_URL), {
     ...init,
-    headers: { Accept: 'application/json', ...init?.headers },
+    headers: {
+      Accept: 'application/json',
+      ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+      ...init.headers,
+    },
   })
   const body: unknown = await response.json().catch(() => null)
 

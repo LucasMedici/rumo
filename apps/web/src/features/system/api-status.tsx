@@ -21,7 +21,7 @@ export function ApiStatus() {
         : { label: 'API online · banco conectado', dot: 'bg-emerald-500' }
 
   return (
-    <output className="inline-flex items-center gap-2 text-neutral-500 text-sm dark:text-neutral-400">
+    <output className="inline-flex items-center gap-2 text-muted-foreground text-sm">
       <span className={`size-2 rounded-full ${state.dot}`} aria-hidden="true" />
       {state.label}
     </output>

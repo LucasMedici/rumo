@@ -31,6 +31,22 @@
       "trailingCommas": "all"
     }
   },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["apps/web/**"],
+      "linter": {
+        "domains": {
+          "next": "recommended",
+          "react": "recommended"
+        }
+      }
+    }
+  ],
   "assist": {
     "enabled": true,
     "actions": {

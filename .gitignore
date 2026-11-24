@@ -36,6 +36,10 @@ logs/
 npm-debug.log*
 pnpm-debug.log*
 
+# Deploy & certificates
+.vercel/
+*.pem
+
 # Editors & OS
 .vscode/*
 !.vscode/extensions.json

@@ -1,0 +1,12 @@
+// Connection settings live in prisma.config.ts (CLI) and src/infra/prisma.ts (runtime).
+// All tables are created in the `rumo` schema. Every new table MUST have RLS enabled in its
+// migration: ALTER TABLE rumo."Table" ENABLE ROW LEVEL SECURITY;
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}

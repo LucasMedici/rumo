@@ -5,5 +5,7 @@ packages:
 # Dependencies allowed to run install scripts.
 allowBuilds:
   esbuild: true # used by tsx
+  prisma: true
+  "@prisma/engines": true
   sharp: false # Next.js image optimization (prebuilt binaries are enough)
   unrs-resolver: false

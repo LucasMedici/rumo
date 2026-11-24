@@ -11,7 +11,7 @@ import { errorHandler } from './shared/error-handler.js'
 
 /** Builds the Fastify app without listening, so tests can use `app.inject()`. */
 export function buildApp(container: Container) {
-  const { env } = container
+  const { env, prisma } = container
 
   const app = Fastify({
     logger: {
@@ -32,7 +32,9 @@ export function buildApp(container: Container) {
   )
 
   app.register(cors, { origin: env.CORS_ORIGIN.split(',').map((origin) => origin.trim()) })
-  app.register(healthRoutes)
+  app.register(healthRoutes({ prisma }))
+
+  app.addHook('onClose', () => container.dispose())
 
   return app
 }

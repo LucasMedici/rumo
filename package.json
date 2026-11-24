@@ -1,0 +1,25 @@
+{
+  "name": "rumo",
+  "private": true,
+  "description": "Rumo — Rumo à sua próxima vaga.",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test",
+    "dev": "pnpm -r --parallel --if-present dev",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:status": "supabase status"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.8",
+    "supabase": "^3.2.0",
+    "typescript": "^7.0.2"
+  }
+}

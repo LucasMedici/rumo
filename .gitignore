@@ -1,0 +1,46 @@
+# Claude Code
+CLAUDE.md
+CLAUDE.local.md
+.claude/settings.local.json
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Builds
+dist/
+build/
+out/
+.next/
+.turbo/
+*.tsbuildinfo
+next-env.d.ts
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Supabase local
+supabase/.branches/
+supabase/.temp/
+
+# Tests & coverage
+coverage/
+test-results/
+playwright-report/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Editors & OS
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+.DS_Store
+Thumbs.db
+*:Zone.Identifier

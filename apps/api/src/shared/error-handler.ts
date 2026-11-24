@@ -1,13 +1,10 @@
+import type { ErrorResponse } from '@rumo/contracts'
 import type { FastifyError, FastifyReply, FastifyRequest } from 'fastify'
 import {
   hasZodFastifySchemaValidationErrors,
   isResponseSerializationError,
 } from 'fastify-type-provider-zod'
 import { AppError } from './errors.js'
-
-export type ErrorResponse = {
-  error: { code: string; message: string; details?: unknown }
-}
 
 export function errorHandler(error: FastifyError, request: FastifyRequest, reply: FastifyReply) {
   if (hasZodFastifySchemaValidationErrors(error)) {

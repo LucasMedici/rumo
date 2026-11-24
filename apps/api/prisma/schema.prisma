@@ -10,3 +10,17 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+/// Application user. `id` is the auth provider's subject (`sub` claim), with no FK to auth.users
+/// so the app stays decoupled from Supabase.
+model User {
+  id        String   @id @db.Uuid
+  email     String   @unique
+  name      String?
+  avatarUrl String?  @map("avatar_url")
+  locale    String   @default("pt-BR")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("users")
+}

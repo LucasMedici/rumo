@@ -5,7 +5,9 @@ import type { Prisma } from '../../infra/prisma.js'
 
 describe('GET /health', () => {
   it('reports ok when the database answers', async () => {
-    const app = buildTestApp({ $queryRaw: vi.fn().mockResolvedValue([{ '?column?': 1 }]) as never })
+    const app = buildTestApp({
+      prisma: { $queryRaw: vi.fn().mockResolvedValue([{ '?column?': 1 }]) as never },
+    })
 
     const response = await app.inject({ method: 'GET', url: '/health' })
 
@@ -18,7 +20,7 @@ describe('GET /health', () => {
     const failing: Partial<Prisma> = {
       $queryRaw: vi.fn().mockRejectedValue(new Error('connection refused')) as never,
     }
-    const app = buildTestApp(failing)
+    const app = buildTestApp({ prisma: failing })
 
     const response = await app.inject({ method: 'GET', url: '/health' })
 

@@ -7,6 +7,8 @@ import {
 } from 'fastify-type-provider-zod'
 import type { Container } from './container.js'
 import { healthRoutes } from './modules/health/health.routes.js'
+import { identityRoutes } from './modules/identity/identity.routes.js'
+import { createRequireAuth } from './shared/auth.js'
 import { errorHandler } from './shared/error-handler.js'
 
 /** Builds the Fastify app without listening, so tests can use `app.inject()`. */
@@ -32,7 +34,11 @@ export function buildApp(container: Container) {
   )
 
   app.register(cors, { origin: env.CORS_ORIGIN.split(',').map((origin) => origin.trim()) })
+  app.decorateRequest('auth', null)
+  const requireAuth = createRequireAuth(container.tokenVerifier)
+
   app.register(healthRoutes({ prisma }))
+  app.register(identityRoutes({ usersService: container.usersService, requireAuth }))
 
   app.addHook('onClose', () => container.dispose())
 

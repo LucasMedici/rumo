@@ -9,6 +9,7 @@ const envSchema = z.object({
   DATABASE_URL: z
     .string()
     .regex(/^postgres(ql)?:\/\//, 'must be a postgresql:// connection string'),
+  SUPABASE_URL: z.url().transform((url) => url.replace(/\/+$/, '')),
 })
 
 export type Env = z.infer<typeof envSchema>

@@ -2,6 +2,7 @@ packages:
   - apps/*
   - packages/*
 
-# Dependencies allowed to run install scripts (the Supabase CLI downloads its binary on install).
-onlyBuiltDependencies:
-  - supabase
+# Dependencies allowed to run install scripts.
+allowBuilds:
+  esbuild: true # used by tsx
+  supabase: true # downloads the CLI binary

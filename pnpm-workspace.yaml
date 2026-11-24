@@ -5,6 +5,5 @@ packages:
 # Dependencies allowed to run install scripts.
 allowBuilds:
   esbuild: true # used by tsx
-  supabase: true # downloads the CLI binary
   sharp: false # Next.js image optimization (prebuilt binaries are enough)
   unrs-resolver: false

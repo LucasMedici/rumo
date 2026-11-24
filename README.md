@@ -2,86 +2,88 @@
 
 # Rumo
 
-### Rumo à sua próxima vaga.
+### Your next job, on course.
 
-**Encontre as vagas certas, chegue preparado e conquiste a oportunidade — tudo em um só lugar.**
+**Find the right openings, prepare with purpose and land the job — all in one place.**
 
-[![Status](https://img.shields.io/badge/status-em%20desenvolvimento-orange?style=flat-square)](#roadmap)
+[![Status](https://img.shields.io/badge/status-in%20development-orange?style=flat-square)](#roadmap)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-000000?style=flat-square&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
 [![Fastify](https://img.shields.io/badge/Fastify-000000?style=flat-square&logo=fastify&logoColor=white)](https://fastify.dev/)
 [![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?style=flat-square&logo=supabase&logoColor=white)](https://supabase.com/)
 
-[Visão geral](#visão-geral) • [Funcionalidades](#funcionalidades) • [Como funciona](#como-funciona) • [Stack](#stack) • [Roadmap](#roadmap) • [Primeiros passos](#primeiros-passos)
+[Overview](#overview) • [Features](#features) • [How it works](#how-it-works) • [Tech stack](#tech-stack) • [Roadmap](#roadmap) • [Getting started](#getting-started)
+
+**English** | [Português](docs/README.pt-BR.md)
 
 </div>
 
 > [!NOTE]
-> O Rumo está em fase inicial de desenvolvimento. O primeiro módulo em construção é o **Job Finder**.
+> Rumo is in early development. The first module being built is the **Job Finder**.
 
-## Visão geral
+## Overview
 
-Procurar emprego hoje significa abrir dez abas, repetir a mesma busca em vários sites, perder vagas boas no meio de anúncios duplicados ou suspeitos e, no fim, mandar o mesmo currículo genérico para todas.
+Job hunting today means ten open tabs, the same search repeated across different sites, good openings buried under duplicate or suspicious listings — and, in the end, the same generic resume sent everywhere.
 
-O **Rumo** é um Career Hub que organiza toda a jornada:
+**Rumo** is a career hub that covers the whole journey:
 
-- **Descobrir** — vagas nacionais e internacionais de várias fontes, em um só lugar, sem duplicatas.
-- **Decidir** — cada vaga recebe uma nota de qualidade e uma nota de compatibilidade com o seu perfil, com os motivos explicados.
-- **Se preparar** — currículo direcionado para cada vaga e entrevistas simuladas por voz com IA *(em breve)*.
+- **Discover** — openings from Brazil and abroad, from many sources, in one place, with no duplicates.
+- **Decide** — every opening gets a quality score and a profile-fit score, with the reasons spelled out.
+- **Prepare** — an ATS-friendly resume tailored to each opening and voice mock interviews with AI *(coming soon)*.
 
-## Funcionalidades
+## Features
 
-### Job Finder — *em desenvolvimento*
+### Job Finder — *in development*
 
-- **Busca unificada** em fontes nacionais e internacionais: ATS de empresas (Greenhouse, Lever, Ashby), agregadores (Adzuna, Remotive e outros), Hacker News e comunidades brasileiras no GitHub.
-- **Deduplicação inteligente**: a mesma vaga publicada em vários lugares aparece uma vez só.
-- **Job Quality Score**: identifica anúncios incompletos, desatualizados ou com sinais de fraude.
-- **Candidate Match Score**: mostra o quanto a vaga combina com as suas skills, senioridade, localização e objetivos — e o que está faltando.
-- **Filtros completos**: cargo, tecnologias, senioridade, país, modalidade, salário e critérios personalizados.
-- **Favoritos e acompanhamento de candidaturas**, com histórico de cada processo.
+- **Unified search** across national and international sources: company ATS boards (Greenhouse, Lever, Ashby), aggregators (Adzuna, Remotive and more), Hacker News and Brazilian developer communities on GitHub.
+- **Smart deduplication**: the same opening posted in several places shows up only once.
+- **Job Quality Score**: flags incomplete, stale or potentially fraudulent listings.
+- **Candidate Match Score**: shows how well an opening fits your skills, seniority, location and goals — and what's missing.
+- **Rich filters**: title, technologies, seniority, country, work mode, salary and custom criteria.
+- **Favorites and application tracking**, with the full history of every process.
 
 > [!TIP]
-> As duas notas são independentes de propósito: uma vaga pode ser excelente e não ser para você — ou combinar com você e ser um anúncio duvidoso. O Rumo mostra as duas coisas.
+> The two scores are independent on purpose: a great opening may not be right for you — and a perfect fit may be a dubious listing. Rumo shows you both.
 
-### Resume Generator — *próxima etapa*
+### Resume Generator — *next*
 
-Currículos otimizados para ATS e direcionados a cada vaga, construídos **a partir do seu histórico real**. O Rumo destaca o que é relevante, usa as palavras-chave certas e mostra quais requisitos foram atendidos — sem nunca inventar experiências.
+ATS-optimized resumes tailored to each opening, built **from your real experience**. Rumo highlights what matters, uses the right keywords and shows which requirements are covered — without ever making anything up.
 
-### Interview Simulator — *etapa futura*
+### Interview Simulator — *planned*
 
-Entrevistas simuladas por voz, em português e inglês, baseadas na vaga e no seu currículo. Ao final, um relatório com pontos fortes, erros técnicos, lacunas de conhecimento, comunicação, pronúncia e um plano de estudo.
+Real-time voice mock interviews in Portuguese and English, based on the opening and on your resume. You get a report covering strengths, technical mistakes, knowledge gaps, communication, English pronunciation and vocabulary, plus a study plan.
 
-## Como funciona
+## How it works
 
 ```mermaid
 flowchart LR
-    A[Fontes de vagas] --> B[Adapters]
-    B --> C[Normalização]
-    C --> D[Deduplicação]
+    A[Job sources] --> B[Adapters]
+    B --> C[Normalization]
+    C --> D[Deduplication]
     D --> E[Quality Score]
     E --> F[Match Score]
-    F --> G[Seu painel de vagas]
+    F --> G[Your job board]
 ```
 
-1. Cada fonte tem um **adapter isolado** que converte os dados para um formato padrão.
-2. As vagas são **normalizadas** (cargo, empresa, localização, salário, skills) e **deduplicadas** entre fontes.
-3. Cada vaga recebe um **Quality Score**; para cada usuário, um **Match Score** com o detalhamento dos critérios.
-4. Você filtra, favorita e acompanha suas candidaturas no painel.
+1. Each source has an **isolated adapter** that converts its data into a standard format.
+2. Openings are **normalized** (title, company, location, salary, skills) and **deduplicated** across sources.
+3. Each opening gets a **Quality Score**; each user gets a **Match Score** with a per-criterion breakdown.
+4. You filter, favorite and track your applications from the dashboard.
 
 > [!IMPORTANT]
-> O Rumo usa apenas APIs oficiais, feeds públicos e integrações autorizadas, respeitando os termos de uso de cada provedor.
+> Rumo only uses official APIs, public feeds and authorized integrations, respecting each provider's terms of use.
 
-## Stack
+## Tech stack
 
-| Camada | Tecnologias |
+| Layer | Technologies |
 |---|---|
-| Frontend | Next.js, React, TypeScript, TanStack Query, shadcn/ui |
+| Frontend | Next.js, React, TypeScript, TanStack Query, Tailwind CSS |
 | Backend | Node.js, Fastify, TypeScript, Zod |
-| Dados | PostgreSQL (Supabase), Prisma, pg-boss |
-| Autenticação | Supabase Auth — e-mail e senha, GitHub e Google |
-| Qualidade | Vitest, ESLint, GitHub Actions |
+| Data | PostgreSQL (Supabase), Prisma, pg-boss |
+| Auth | Supabase Auth — email and password, GitHub and Google |
+| Quality | Vitest, Biome, GitHub Actions |
 
-Arquitetura de **monólito modular** em monorepo (pnpm workspaces), desacoplada do provedor de infraestrutura e preparada para evoluir para SaaS.
+A **modular monolith** in a pnpm monorepo, decoupled from the infrastructure provider and designed to grow into a SaaS.
 
 ```
 rumo/
@@ -89,45 +91,49 @@ rumo/
 │   ├── web/          # Next.js
 │   └── api/          # Fastify (API + worker)
 └── packages/
-    ├── contracts/    # schemas Zod compartilhados
-    └── config/       # configurações base
+    ├── contracts/    # shared Zod schemas
+    └── config/       # shared base config
 ```
 
 ## Roadmap
 
-- [ ] Fundação do monorepo, CI e ambiente local
-- [ ] Autenticação (e-mail e senha, GitHub, Google)
-- [ ] Modelo de vagas e import manual
-- [ ] Integração com as primeiras fontes (ATS e agregadores)
-- [ ] Ingestão agendada
-- [ ] Busca e filtros
-- [ ] Deduplicação entre fontes
-- [ ] Favoritos e acompanhamento de candidaturas
-- [ ] Perfil profissional e taxonomia de skills
+- [x] Monorepo foundation (pnpm, Biome, TypeScript)
+- [x] API and web skeletons with shared contracts
+- [ ] Database (Supabase + Prisma) and CI
+- [ ] Authentication (email and password, GitHub, Google)
+- [ ] Job model and manual import
+- [ ] First job sources (ATS boards and aggregators)
+- [ ] Scheduled ingestion
+- [ ] Search and filters
+- [ ] Cross-source deduplication
+- [ ] Favorites and application tracking
+- [ ] Professional profile and skills taxonomy
 - [ ] Job Quality Score
 - [ ] Candidate Match Score
 - [ ] Resume Generator
 - [ ] Interview Simulator
 
-## Primeiros passos
+## Getting started
 
-> [!WARNING]
-> O código ainda está sendo construído. As instruções abaixo representam o fluxo previsto e serão atualizadas na primeira entrega.
-
-**Pré-requisitos:** [Node.js 24 LTS](https://nodejs.org/), [pnpm](https://pnpm.io/), [Docker](https://www.docker.com/) e [Supabase CLI](https://supabase.com/docs/guides/local-development).
+**Prerequisites:** [Node.js 24 LTS](https://nodejs.org/), [pnpm](https://pnpm.io/) and a [Supabase](https://supabase.com/) project.
 
 ```bash
-git clone <url-do-repositorio> rumo
+git clone <repository-url> rumo
 cd rumo
 pnpm install
-cp .env.example .env
-supabase start
-pnpm db:migrate
+cp apps/api/.env.example apps/api/.env
+cp apps/web/.env.example apps/web/.env.local
 pnpm dev
 ```
 
+- Web: http://localhost:3000
+- API: http://localhost:3333/health
+
+> [!WARNING]
+> Database setup instructions will be added as soon as the Supabase + Prisma integration lands.
+
 <div align="center">
 
-**Rumo** — Rumo à sua próxima vaga.
+**Rumo** — Your next job, on course.
 
 </div>

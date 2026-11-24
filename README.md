@@ -99,7 +99,7 @@ rumo/
 
 - [x] Monorepo foundation (pnpm, Biome, TypeScript)
 - [x] API and web skeletons with shared contracts
-- [ ] Database (Supabase + Prisma) and CI
+- [x] Database (Supabase + Prisma), security baseline and CI
 - [ ] Authentication (email and password, GitHub, Google)
 - [ ] Job model and manual import
 - [ ] First job sources (ATS boards and aggregators)
@@ -118,19 +118,22 @@ rumo/
 **Prerequisites:** [Node.js 24 LTS](https://nodejs.org/), [pnpm](https://pnpm.io/) and a [Supabase](https://supabase.com/) project.
 
 ```bash
-git clone <repository-url> rumo
+git clone https://github.com/LucasMedici/rumo.git
 cd rumo
 pnpm install
-cp apps/api/.env.example apps/api/.env
+cp apps/api/.env.example apps/api/.env      # set DATABASE_URL (Supabase → Connect → Session pooler)
 cp apps/web/.env.example apps/web/.env.local
+pnpm --filter @rumo/api db:migrate          # apply database migrations
 pnpm dev
 ```
 
 - Web: http://localhost:3000
 - API: http://localhost:3333/health
 
-> [!WARNING]
-> Database setup instructions will be added as soon as the Supabase + Prisma integration lands.
+> [!IMPORTANT]
+> In your Supabase project, enable **Enforce SSL** (Database → Settings) and disable the **Data API** (Project Settings → Data API). The API connects with TLS verified against Supabase's root CA (`apps/api/certs/supabase-ca.crt`).
+
+Run the checks with `pnpm lint`, `pnpm typecheck` and `pnpm test`.
 
 <div align="center">
 

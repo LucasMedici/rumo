@@ -99,7 +99,7 @@ rumo/
 
 - [x] Fundação do monorepo (pnpm, Biome, TypeScript)
 - [x] Esqueleto da API e da web com contratos compartilhados
-- [ ] Banco de dados (Supabase + Prisma) e CI
+- [x] Banco de dados (Supabase + Prisma), segurança e CI
 - [ ] Autenticação (e-mail e senha, GitHub, Google)
 - [ ] Modelo de vagas e import manual
 - [ ] Primeiras fontes de vagas (ATS e agregadores)
@@ -118,19 +118,22 @@ rumo/
 **Pré-requisitos:** [Node.js 24 LTS](https://nodejs.org/), [pnpm](https://pnpm.io/) e um projeto no [Supabase](https://supabase.com/).
 
 ```bash
-git clone <url-do-repositorio> rumo
+git clone https://github.com/LucasMedici/rumo.git
 cd rumo
 pnpm install
-cp apps/api/.env.example apps/api/.env
+cp apps/api/.env.example apps/api/.env      # preencha DATABASE_URL (Supabase → Connect → Session pooler)
 cp apps/web/.env.example apps/web/.env.local
+pnpm --filter @rumo/api db:migrate          # aplica as migrations do banco
 pnpm dev
 ```
 
 - Web: http://localhost:3000
 - API: http://localhost:3333/health
 
-> [!WARNING]
-> As instruções de configuração do banco serão adicionadas assim que a integração Supabase + Prisma for concluída.
+> [!IMPORTANT]
+> No seu projeto Supabase, ative o **Enforce SSL** (Database → Settings) e desligue a **Data API** (Project Settings → Data API). A API conecta com TLS verificado contra a CA raiz do Supabase (`apps/api/certs/supabase-ca.crt`).
+
+Rode as verificações com `pnpm lint`, `pnpm typecheck` e `pnpm test`.
 
 <div align="center">
 

@@ -109,6 +109,13 @@ pessoal e o app do Google está em **modo de teste** (só os e-mails cadastrados
 
 ## 🔎 Fontes de vagas (depois do MVP)
 
+- [ ] **Import manual com preenchimento automático pelo link**: ao colar a URL da vaga, ler os dados
+  estruturados da página (`schema.org/JobPosting` em JSON-LD, que ATS como Greenhouse, Lever, Gupy e
+  o próprio LinkedIn costumam publicar) e preencher o formulário. Respeitar termos de uso: só a página
+  que o usuário colou, sob demanda.
+- [ ] **Import manual com IA**: colar o texto da vaga e um LLM separa cargo, empresa, senioridade,
+  modalidade, salário e requisitos. Útil também para extrair skills (etapa 8).
+
 - [ ] **Descoberta automática de boards ATS**: quando uma vaga de agregador aponta para
   Greenhouse/Lever/Ashby, passar a buscar todas as vagas daquela empresa direto na fonte.
 - [ ] **Ingestão de alertas por e-mail** (LinkedIn, Gupy, Indeed): filtro no Gmail encaminha os

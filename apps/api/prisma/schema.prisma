@@ -1,6 +1,7 @@
 // Connection settings live in prisma.config.ts (CLI) and src/infra/prisma.ts (runtime).
 // All tables are created in the `rumo` schema. Every new table MUST have RLS enabled in its
-// migration: ALTER TABLE rumo."Table" ENABLE ROW LEVEL SECURITY;
+// migration: ALTER TABLE "table" ENABLE ROW LEVEL SECURITY;
+// Naming: snake_case in Postgres (@map/@@map), camelCase in TypeScript.
 
 generator client {
   provider = "prisma-client"
@@ -10,6 +11,8 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+// ─── Identity ────────────────────────────────────────────────────────────────────────────
 
 /// Application user. `id` is the auth provider's subject (`sub` claim), with no FK to auth.users
 /// so the app stays decoupled from Supabase.
@@ -22,5 +25,178 @@ model User {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
+  jobs             UserJob[]
+  importedListings JobListing[]
+
   @@map("users")
+}
+
+// ─── Jobs (global facts) ─────────────────────────────────────────────────────────────────
+
+enum WorkMode {
+  remote
+  hybrid
+  onsite
+
+  @@map("work_mode")
+}
+
+enum Seniority {
+  intern
+  junior
+  mid
+  senior
+  staff
+  principal
+  lead
+  manager
+
+  @@map("seniority")
+}
+
+enum EmploymentType {
+  full_time
+  part_time
+  contract
+  internship
+  temporary
+  freelance
+
+  @@map("employment_type")
+}
+
+enum SalaryPeriod {
+  hour
+  day
+  month
+  year
+
+  @@map("salary_period")
+}
+
+enum JobStatus {
+  open
+  closed
+
+  @@map("job_status")
+}
+
+enum JobSourceKind {
+  manual
+  ats
+  aggregator
+  community
+
+  @@map("job_source_kind")
+}
+
+/// A company, deduplicated by its normalized name ("Nubank S.A." and "nubank" are the same).
+model Company {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  name           String
+  normalizedName String   @unique @map("normalized_name")
+  website        String?
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  jobs Job[]
+
+  @@map("companies")
+}
+
+/// The canonical job opening: a global fact, shared by every source that lists it.
+model Job {
+  id             String          @id @default(uuid(7)) @db.Uuid
+  companyId      String          @map("company_id") @db.Uuid
+  title          String
+  description    String
+  locationText   String?         @map("location_text")
+  /// ISO 3166-1 alpha-2
+  countryCode    String?         @map("country_code") @db.Char(2)
+  workMode       WorkMode?       @map("work_mode")
+  seniority      Seniority?
+  employmentType EmploymentType? @map("employment_type")
+  salaryMin      Int?            @map("salary_min")
+  salaryMax      Int?            @map("salary_max")
+  /// ISO 4217
+  salaryCurrency String?         @map("salary_currency") @db.Char(3)
+  salaryPeriod   SalaryPeriod?   @map("salary_period")
+  applyUrl       String?         @map("apply_url")
+  status         JobStatus       @default(open)
+  postedAt       DateTime?       @map("posted_at") @db.Timestamptz(6)
+  firstSeenAt    DateTime        @default(now()) @map("first_seen_at") @db.Timestamptz(6)
+  lastSeenAt     DateTime        @default(now()) @map("last_seen_at") @db.Timestamptz(6)
+  closedAt       DateTime?       @map("closed_at") @db.Timestamptz(6)
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  company  Company      @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  listings JobListing[]
+  users    UserJob[]
+
+  @@index([companyId])
+  @@map("jobs")
+}
+
+/// Catalog of job sources (manual import, ATS boards, aggregators...).
+model JobSource {
+  key        String        @id
+  name       String
+  kind       JobSourceKind
+  /// 0–100: how much the source is trusted (used by the Job Quality Score)
+  trustLevel Int           @default(50) @map("trust_level")
+  createdAt  DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  listings JobListing[]
+
+  @@map("job_sources")
+}
+
+/// Where a job was found. One job can have many listings (that's how deduplication works).
+model JobListing {
+  id               String   @id @default(uuid(7)) @db.Uuid
+  jobId            String   @map("job_id") @db.Uuid
+  sourceKey        String   @map("source_key")
+  /// The job's id at the source (a generated id for manual imports)
+  externalId       String   @map("external_id")
+  url              String?
+  /// Set for manual imports: who pasted the job
+  importedByUserId String?  @map("imported_by_user_id") @db.Uuid
+  firstSeenAt      DateTime @default(now()) @map("first_seen_at") @db.Timestamptz(6)
+  lastSeenAt       DateTime @default(now()) @map("last_seen_at") @db.Timestamptz(6)
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  job        Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  source     JobSource @relation(fields: [sourceKey], references: [key], onDelete: Restrict)
+  importedBy User?     @relation(fields: [importedByUserId], references: [id], onDelete: SetNull)
+
+  @@unique([sourceKey, externalId])
+  @@index([jobId])
+  @@index([importedByUserId])
+  @@map("job_listings")
+}
+
+// ─── User ↔ job ──────────────────────────────────────────────────────────────────────────
+
+enum UserJobOrigin {
+  imported
+  saved
+
+  @@map("user_job_origin")
+}
+
+/// A job in a user's list. Tracking fields (favorite, status, notes...) arrive in a later stage.
+model UserJob {
+  userId    String        @map("user_id") @db.Uuid
+  jobId     String        @map("job_id") @db.Uuid
+  origin    UserJobOrigin
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job  Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@id([userId, jobId])
+  @@index([userId, createdAt(sort: Desc), jobId(sort: Desc)])
+  @@map("user_jobs")
 }

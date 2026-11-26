@@ -14,6 +14,13 @@ export class AppError extends Error {
   }
 }
 
+/** Business-rule validation that depends on stored state (schema validation happens at the edge). */
+export class ValidationError extends AppError {
+  constructor(message: string, details?: unknown) {
+    super(message, 400, 'VALIDATION_ERROR', details)
+  }
+}
+
 export class NotFoundError extends AppError {
   constructor(resource: string) {
     super(`${resource} not found`, 404, 'NOT_FOUND')

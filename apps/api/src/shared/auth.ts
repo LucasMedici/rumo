@@ -1,4 +1,4 @@
-import type { FastifyRequest, preHandlerAsyncHookHandler } from 'fastify'
+import type { FastifyRequest, preValidationAsyncHookHandler } from 'fastify'
 import {
   type AuthIdentity,
   InvalidTokenError,
@@ -14,10 +14,12 @@ declare module 'fastify' {
 }
 
 /**
- * Builds the `requireAuth` preHandler: rejects requests without a valid Bearer token
- * and exposes the verified identity as `request.auth`.
+ * Builds the `requireAuth` hook: rejects requests without a valid Bearer token and exposes the
+ * verified identity as `request.auth`. Use it as a `preValidation` hook: it runs after the rate
+ * limit (`onRequest`, so failed attempts are counted) and before body/params validation (so
+ * unauthenticated callers get 401 and learn nothing about the expected payload).
  */
-export function createRequireAuth(verifier: TokenVerifier): preHandlerAsyncHookHandler {
+export function createRequireAuth(verifier: TokenVerifier): preValidationAsyncHookHandler {
   return async (request) => {
     const token = extractBearerToken(request)
     if (!token) throw new UnauthorizedError('Missing bearer token')

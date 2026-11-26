@@ -4,6 +4,7 @@ import type { Container } from '../src/container.js'
 import { InvalidTokenError, type TokenVerifier } from '../src/infra/auth/token-verifier.js'
 import type { Prisma } from '../src/infra/prisma.js'
 import { UsersService } from '../src/modules/identity/users.service.js'
+import { JobsService } from '../src/modules/jobs/jobs.service.js'
 
 export const testEnv: Env = {
   NODE_ENV: 'test',
@@ -28,6 +29,8 @@ type TestOverrides = {
   env?: Partial<Env>
   prisma?: Partial<Prisma>
   tokenVerifier?: TokenVerifier
+  jobsService?: JobsService
+  usersService?: UsersService
 }
 
 /** Builds the app with fakes, for HTTP tests that must not touch the database or the network. */
@@ -35,13 +38,16 @@ export function buildTestApp({
   env = {},
   prisma = {},
   tokenVerifier = rejectingVerifier,
+  jobsService,
+  usersService,
 }: TestOverrides = {}) {
   const fakePrisma = prisma as Prisma
   const container: Container = {
     env: { ...testEnv, ...env },
     prisma: fakePrisma,
     tokenVerifier,
-    usersService: new UsersService(fakePrisma),
+    usersService: usersService ?? new UsersService(fakePrisma),
+    jobsService: jobsService ?? new JobsService(fakePrisma),
     dispose: async () => {},
   }
   return buildApp(container)

@@ -3,12 +3,14 @@ import { SupabaseTokenVerifier } from './infra/auth/supabase-token-verifier.js'
 import type { TokenVerifier } from './infra/auth/token-verifier.js'
 import { createPrisma, type Prisma } from './infra/prisma.js'
 import { UsersService } from './modules/identity/users.service.js'
+import { JobsService } from './modules/jobs/jobs.service.js'
 
 export type Container = {
   env: Env
   prisma: Prisma
   tokenVerifier: TokenVerifier
   usersService: UsersService
+  jobsService: JobsService
   dispose(): Promise<void>
 }
 
@@ -24,6 +26,7 @@ export function createContainer(env: Env): Container {
     prisma,
     tokenVerifier: SupabaseTokenVerifier.forProject(env.SUPABASE_URL),
     usersService: new UsersService(prisma),
+    jobsService: new JobsService(prisma),
     async dispose() {
       await prisma.$disconnect()
     },

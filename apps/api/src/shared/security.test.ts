@@ -62,6 +62,18 @@ describe('rate limit', () => {
     expect(attempts.map((r) => r.statusCode)).toEqual([401, 401, 429])
   })
 
+  it('counts unauthenticated writes before validating them (401, then 429; never 400)', async () => {
+    const app = buildTestApp({ env: { RATE_LIMIT_MAX: 2 } })
+
+    const statuses: number[] = []
+    for (let i = 0; i < 3; i++) {
+      const response = await app.inject({ method: 'POST', url: '/jobs/import', payload: {} })
+      statuses.push(response.statusCode)
+    }
+
+    expect(statuses).toEqual([401, 401, 429])
+  })
+
   it('counts each client IP separately', async () => {
     const app = buildTestApp({ env: { RATE_LIMIT_MAX: 1 }, prisma: healthyPrisma })
 

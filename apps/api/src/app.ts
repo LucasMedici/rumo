@@ -8,6 +8,7 @@ import {
 import type { Container } from './container.js'
 import { healthRoutes } from './modules/health/health.routes.js'
 import { identityRoutes } from './modules/identity/identity.routes.js'
+import { jobsRoutes } from './modules/jobs/jobs.routes.js'
 import { createRequireAuth } from './shared/auth.js'
 import { errorHandler } from './shared/error-handler.js'
 import { registerSecurity } from './shared/security.js'
@@ -42,6 +43,13 @@ export function buildApp(container: Container) {
 
   app.register(healthRoutes({ prisma }))
   app.register(identityRoutes({ usersService: container.usersService, requireAuth }))
+  app.register(
+    jobsRoutes({
+      jobsService: container.jobsService,
+      usersService: container.usersService,
+      requireAuth,
+    }),
+  )
 
   app.addHook('onClose', () => container.dispose())
 

@@ -1,11 +1,11 @@
 'use client'
 
 import { useActionState } from 'react'
+import { FormField } from '@/components/form/form-field'
+import { FormMessage } from '@/components/form/form-message'
 import { Button } from '@/components/ui/button'
 import { requestPasswordReset } from '../actions'
 import { initialFormState } from '../form-state'
-import { FormField } from './form-field'
-import { FormMessage } from './form-message'
 
 export function ForgotPasswordForm() {
   const [state, formAction, pending] = useActionState(requestPasswordReset, initialFormState)

@@ -101,7 +101,7 @@ rumo/
 - [x] API and web skeletons with shared contracts
 - [x] Database (Supabase + Prisma), security baseline and CI
 - [x] Authentication (email and password, GitHub, Google) with API hardening
-- [ ] Job model and manual import
+- [x] Job model, manual import, job list and detail
 - [ ] First job sources (ATS boards and aggregators)
 - [ ] Scheduled ingestion
 - [ ] Search and filters

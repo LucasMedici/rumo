@@ -100,9 +100,15 @@ pessoal e o app do Google está em **modo de teste** (só os e-mails cadastrados
 
 ## 🎨 Produto e interface
 
-- [ ] **Identidade visual** do app (cores, tipografia, logo), inspirada nas referências:
-  [lumiaclin.com.br](https://lumiaclin.com.br/), [hooby.com.br](https://hooby.com.br/),
-  [abacatepay.com](https://www.abacatepay.com/). Hoje usamos o tema neutro padrão do shadcn/ui.
+- [ ] **Etapa de design — combinada para logo depois da etapa 2 (antes da 3).** Com as telas de
+  login, lista, detalhe e formulário prontas e com dados reais:
+  1. **Arquitetura da interface** (o que é caro mudar depois): navegação (menu lateral × topo),
+     o que fica na tela principal, organização de listas e filtros (a busca da etapa 5 deve nascer
+     nesse padrão), comportamento no celular.
+  2. **Identidade visual** (barata de mudar, via variáveis de tema do shadcn): paleta, tipografia,
+     raio dos cantos, logo, modo escuro. Referências: [lumiaclin.com.br](https://lumiaclin.com.br/),
+     [hooby.com.br](https://hooby.com.br/), [abacatepay.com](https://www.abacatepay.com/).
+  3. Aplicar no tema e nas telas existentes. Hoje usamos o tema neutro padrão do shadcn/ui.
 - [ ] **Modo escuro** com alternância (o shadcn já tem os tokens `.dark`).
 - [ ] **i18n da interface** (pt-BR / en).
 - [ ] **Landing page** de verdade na home (`/`).

@@ -36,7 +36,11 @@ export function buildApp(container: Container) {
     }),
   )
 
-  app.register(cors, { origin: env.CORS_ORIGIN.split(',').map((origin) => origin.trim()) })
+  app.register(cors, {
+    origin: env.CORS_ORIGIN.split(',').map((origin) => origin.trim()),
+    // @fastify/cors only allows GET/HEAD/POST by default; the web app also edits and deletes.
+    methods: ['GET', 'HEAD', 'POST', 'PATCH', 'DELETE'],
+  })
   registerSecurity(app, env)
   app.decorateRequest('auth', null)
   const requireAuth = createRequireAuth(container.tokenVerifier)

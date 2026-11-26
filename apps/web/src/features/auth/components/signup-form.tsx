@@ -1,12 +1,12 @@
 'use client'
 
 import { useActionState } from 'react'
+import { FormField } from '@/components/form/form-field'
+import { FormMessage } from '@/components/form/form-message'
 import { Button } from '@/components/ui/button'
 import { signUp } from '../actions'
 import { initialFormState } from '../form-state'
 import { PASSWORD_MIN_LENGTH } from '../schemas'
-import { FormField } from './form-field'
-import { FormMessage } from './form-message'
 
 export function SignupForm() {
   const [state, formAction, pending] = useActionState(signUp, initialFormState)

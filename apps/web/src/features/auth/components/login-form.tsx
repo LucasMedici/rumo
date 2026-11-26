@@ -3,11 +3,11 @@
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useActionState } from 'react'
+import { FormField } from '@/components/form/form-field'
+import { FormMessage } from '@/components/form/form-message'
 import { Button } from '@/components/ui/button'
 import { signIn } from '../actions'
 import { initialFormState } from '../form-state'
-import { FormField } from './form-field'
-import { FormMessage } from './form-message'
 
 const URL_ERRORS: Record<string, string> = {
   link: 'O link expirou ou já foi usado. Entre novamente ou peça um novo link.',

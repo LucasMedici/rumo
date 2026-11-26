@@ -29,6 +29,36 @@ describe('security headers', () => {
   })
 })
 
+describe('CORS', () => {
+  const preflight = (origin: string, method: string) =>
+    buildTestApp().inject({
+      method: 'OPTIONS',
+      url: '/jobs/019abc12-3456-7def-8123-456789abcdef',
+      headers: {
+        origin,
+        'access-control-request-method': method,
+        'access-control-request-headers': 'authorization,content-type',
+      },
+    })
+
+  it.each(['GET', 'POST', 'PATCH', 'DELETE'])(
+    'allows %s from the web app origin (browser preflight)',
+    async (method) => {
+      const response = await preflight('http://localhost:3000', method)
+
+      expect(response.statusCode).toBe(204)
+      expect(response.headers['access-control-allow-origin']).toBe('http://localhost:3000')
+      expect(String(response.headers['access-control-allow-methods'])).toContain(method)
+    },
+  )
+
+  it('does not allow other origins', async () => {
+    const response = await preflight('https://evil.example.com', 'DELETE')
+
+    expect(response.headers['access-control-allow-origin']).toBeUndefined()
+  })
+})
+
 describe('rate limit', () => {
   it('answers 429 in the standard error format after the limit', async () => {
     const app = buildTestApp({ env: { RATE_LIMIT_MAX: 3 }, prisma: healthyPrisma })

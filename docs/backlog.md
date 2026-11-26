@@ -18,11 +18,18 @@ Cada item tem o **porquê** e **quando** faz sentido. Marque `[x]` ao concluir (
   troca de e-mail). Guardar o HTML versionado no repositório e aplicar no Supabase.
 - [ ] **Deploy**: web na Vercel, API + worker em container (Railway/Fly.io/Render), apontando o domínio.
   Atualizar *Site URL* e *Redirect URLs* do Supabase Auth para o domínio de produção.
+  Na API de produção: `TRUST_PROXY=true` (atrás do proxy da plataforma, senão o rate limit vê o IP do
+  proxy para todo mundo) e `CORS_ORIGIN` com o domínio da web. Conferir os headers de segurança
+  (CSP, HSTS) no domínio real e testar o login com Google/GitHub depois do deploy.
 - [ ] **Publicar o login social com a identidade do Rumo** (GitHub e Google). Checklist detalhado
   na seção [Publicação do login social](#publicação-do-login-social) abaixo.
-- [ ] **Revisar a configuração do Auth em produção** (etapa 1d): confirmação de e-mail, senha mínima
-  (no painel novo a opção não foi encontrada em *Providers → Email*; procurar em *Attack Protection*),
-  limites de tentativa, lista de redirects sem `localhost`.
+- [ ] **Revisar a configuração do Auth em produção** (a base foi revisada na etapa 1d, em localhost):
+  - *Redirect URLs* só com o domínio de produção, de preferência restritas a `https://<dominio>/auth/callback**`
+    em vez de `/**`.
+  - **Enquanto o Rumo for de uso pessoal, desligar "Allow new users to sign up"** no deploy: o login
+    com GitHub não passa por confirmação de e-mail, então qualquer pessoa com o link criaria uma conta.
+  - **CAPTCHA (Cloudflare Turnstile)** no cadastro, login e recuperação de senha, para barrar bots
+    quando o cadastro estiver aberto ao público (*Authentication → Attack Protection* + widget nos formulários).
 
 ### Publicação do login social
 
@@ -75,7 +82,10 @@ pessoal e o app do Google está em **modo de teste** (só os e-mails cadastrados
 - [ ] **Send Email Hook**: a API passa a enviar os e-mails de auth via Resend, com templates em React
   (React Email) e idioma do usuário — um layout único para todos os e-mails do Rumo.
 - [ ] **Plano do Supabase**: o Free pausa o projeto após ~1 semana sem uso e tem 500 MB de banco.
-  Avaliar o Pro quando houver usuários reais.
+  Avaliar o Pro quando houver usuários reais. O Pro também libera recursos de segurança do Auth:
+  **bloqueio de senhas vazadas** (HaveIBeenPwned) e **limite de tempo / inatividade das sessões**.
+- [ ] **Autenticação em dois fatores (MFA/TOTP)** opcional para os usuários (o Supabase Auth suporta
+  TOTP no plano Free; precisa de telas de cadastro e verificação do código).
 - [ ] **Cota de Log Ingestion da organização (1 GB/mês no Free, cobrada a partir do início de 2027)**.
   A cota é compartilhada entre todos os projetos da organização; em 2026-11 o projeto
   *finance-assistent* respondia por ~0,47 GB e o Rumo por < 0,01 GB. Investigar a origem no outro
@@ -83,6 +93,8 @@ pessoal e o app do Google está em **modo de teste** (só os e-mails cadastrados
   **Causa encontrada (2026-11-24):** Data API desligada faz o PostgREST logar `pg_pgrst_no_exposed_schemas`
   a cada ~30s. Solução: religar expondo só o `public`. Conferir no Rumo e no finance-assistent se o
   contador de logs do PostgREST zerou.
+- [ ] **CSP mais estrita na web** (hoje sem nonce, com `'unsafe-inline'` em scripts, para manter as
+  páginas estáticas): avaliar o SRI experimental do Next ou nonces quando houver conteúdo de terceiros.
 - [ ] **Testes de segurança do banco no CI** (hoje rodam só localmente): usar um banco de CI
   ou um segredo de leitura no GitHub Actions.
 

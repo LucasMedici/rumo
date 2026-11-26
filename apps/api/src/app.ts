@@ -10,12 +10,14 @@ import { healthRoutes } from './modules/health/health.routes.js'
 import { identityRoutes } from './modules/identity/identity.routes.js'
 import { createRequireAuth } from './shared/auth.js'
 import { errorHandler } from './shared/error-handler.js'
+import { registerSecurity } from './shared/security.js'
 
 /** Builds the Fastify app without listening, so tests can use `app.inject()`. */
 export function buildApp(container: Container) {
   const { env, prisma } = container
 
   const app = Fastify({
+    trustProxy: env.TRUST_PROXY,
     logger: {
       level: env.LOG_LEVEL,
       ...(env.NODE_ENV === 'development' && {
@@ -34,6 +36,7 @@ export function buildApp(container: Container) {
   )
 
   app.register(cors, { origin: env.CORS_ORIGIN.split(',').map((origin) => origin.trim()) })
+  registerSecurity(app, env)
   app.decorateRequest('auth', null)
   const requireAuth = createRequireAuth(container.tokenVerifier)
 

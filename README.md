@@ -100,7 +100,7 @@ rumo/
 - [x] Monorepo foundation (pnpm, Biome, TypeScript)
 - [x] API and web skeletons with shared contracts
 - [x] Database (Supabase + Prisma), security baseline and CI
-- [ ] Authentication (email and password, GitHub, Google)
+- [x] Authentication (email and password, GitHub, Google) with API hardening
 - [ ] Job model and manual import
 - [ ] First job sources (ATS boards and aggregators)
 - [ ] Scheduled ingestion

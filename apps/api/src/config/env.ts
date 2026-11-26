@@ -10,6 +10,13 @@ const envSchema = z.object({
     .string()
     .regex(/^postgres(ql)?:\/\//, 'must be a postgresql:// connection string'),
   SUPABASE_URL: z.url().transform((url) => url.replace(/\/+$/, '')),
+  /** Max requests per IP per minute (all routes). */
+  RATE_LIMIT_MAX: z.coerce.number().int().positive().default(100),
+  /**
+   * Trust X-Forwarded-For to get the client IP. Enable ONLY behind a reverse proxy/load balancer
+   * (e.g. in production); otherwise clients could spoof their IP and bypass the rate limit.
+   */
+  TRUST_PROXY: z.stringbool().default(false),
 })
 
 export type Env = z.infer<typeof envSchema>

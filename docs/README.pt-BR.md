@@ -100,7 +100,7 @@ rumo/
 - [x] Fundação do monorepo (pnpm, Biome, TypeScript)
 - [x] Esqueleto da API e da web com contratos compartilhados
 - [x] Banco de dados (Supabase + Prisma), segurança e CI
-- [ ] Autenticação (e-mail e senha, GitHub, Google)
+- [x] Autenticação (e-mail e senha, GitHub, Google) e proteções na API
 - [ ] Modelo de vagas e import manual
 - [ ] Primeiras fontes de vagas (ATS e agregadores)
 - [ ] Ingestão agendada

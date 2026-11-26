@@ -13,6 +13,8 @@ export const testEnv: Env = {
   CORS_ORIGIN: 'http://localhost:3000',
   DATABASE_URL: 'postgresql://user:pass@localhost:5432/test',
   SUPABASE_URL: 'https://test-project.supabase.co',
+  RATE_LIMIT_MAX: 1000,
+  TRUST_PROXY: false,
 }
 
 /** Verifier that rejects every token unless a test provides one. */
@@ -23,18 +25,20 @@ export const rejectingVerifier: TokenVerifier = {
 }
 
 type TestOverrides = {
+  env?: Partial<Env>
   prisma?: Partial<Prisma>
   tokenVerifier?: TokenVerifier
 }
 
 /** Builds the app with fakes, for HTTP tests that must not touch the database or the network. */
 export function buildTestApp({
+  env = {},
   prisma = {},
   tokenVerifier = rejectingVerifier,
 }: TestOverrides = {}) {
   const fakePrisma = prisma as Prisma
   const container: Container = {
-    env: testEnv,
+    env: { ...testEnv, ...env },
     prisma: fakePrisma,
     tokenVerifier,
     usersService: new UsersService(fakePrisma),

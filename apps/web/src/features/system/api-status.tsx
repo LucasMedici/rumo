@@ -13,7 +13,7 @@ export function ApiStatus() {
   })
 
   const state = isPending
-    ? { label: 'Verificando API…', dot: 'bg-neutral-400' }
+    ? { label: 'Verificando API…', dot: 'bg-muted-foreground' }
     : isError
       ? { label: 'API offline', dot: 'bg-red-500' }
       : data.database === 'down'

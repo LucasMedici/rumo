@@ -100,16 +100,14 @@ pessoal e o app do Google está em **modo de teste** (só os e-mails cadastrados
 
 ## 🎨 Produto e interface
 
-- [ ] **Etapa de design — combinada para logo depois da etapa 2 (antes da 3).** Com as telas de
-  login, lista, detalhe e formulário prontas e com dados reais:
-  1. **Arquitetura da interface** (o que é caro mudar depois): navegação (menu lateral × topo),
-     o que fica na tela principal, organização de listas e filtros (a busca da etapa 5 deve nascer
-     nesse padrão), comportamento no celular.
-  2. **Identidade visual** (barata de mudar, via variáveis de tema do shadcn): paleta, tipografia,
-     raio dos cantos, logo, modo escuro. Referências: [lumiaclin.com.br](https://lumiaclin.com.br/),
-     [hooby.com.br](https://hooby.com.br/), [abacatepay.com](https://www.abacatepay.com/).
-  3. Aplicar no tema e nas telas existentes. Hoje usamos o tema neutro padrão do shadcn/ui.
-- [ ] **Modo escuro** com alternância (o shadcn já tem os tokens `.dark`).
+- [x] **Etapa de design — arquitetura e cores (2026-11-25).** Menu lateral de hub; tema claro (verde
+  profundo + limão nos destaques) e escuro (grafite + limão como primária); alternância Claro/Escuro/Automático.
+- [ ] **Identidade visual — o que falta**: logo/símbolo do Rumo (hoje um ícone de bússola provisório),
+  tipografia (hoje Geist, padrão do template; avaliar uma fonte com mais personalidade), favicon e
+  imagem de compartilhamento. Referências que o usuário citou: [lumiaclin.com.br](https://lumiaclin.com.br/),
+  [hooby.com.br](https://hooby.com.br/), [abacatepay.com](https://www.abacatepay.com/).
+- [ ] **Decidir o tema principal** (claro ou escuro) quando houver mais uso real; hoje o padrão é
+  "Automático" (segue o sistema operacional).
 - [ ] **i18n da interface** (pt-BR / en).
 - [ ] **Landing page** de verdade na home (`/`).
 

@@ -131,7 +131,7 @@ pnpm dev
 - API: http://localhost:3333/health
 
 > [!IMPORTANT]
-> In your Supabase project, enable **Enforce SSL** (Database → Settings) and disable the **Data API** (Project Settings → Data API). The API connects with TLS verified against Supabase's root CA (`apps/api/certs/supabase-ca.crt`).
+> In your Supabase project, enable **Enforce SSL** (Database → Settings) and keep the **Data API** exposing only the `public` schema (Project Settings → Data API) — never expose `rumo`. Don't disable it: PostgREST keeps running and logs an error every ~30s. The API connects with TLS verified against Supabase's root CA (`apps/api/certs/supabase-ca.crt`).
 
 Run the checks with `pnpm lint`, `pnpm typecheck` and `pnpm test`.
 

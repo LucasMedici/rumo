@@ -131,7 +131,7 @@ pnpm dev
 - API: http://localhost:3333/health
 
 > [!IMPORTANT]
-> No seu projeto Supabase, ative o **Enforce SSL** (Database → Settings) e desligue a **Data API** (Project Settings → Data API). A API conecta com TLS verificado contra a CA raiz do Supabase (`apps/api/certs/supabase-ca.crt`).
+> No seu projeto Supabase, ative o **Enforce SSL** (Database → Settings) e mantenha a **Data API** expondo só o schema `public` (Project Settings → Data API) — nunca exponha o `rumo`. Não desligue: o PostgREST continua rodando e registra um erro a cada ~30s. A API conecta com TLS verificado contra a CA raiz do Supabase (`apps/api/certs/supabase-ca.crt`).
 
 Rode as verificações com `pnpm lint`, `pnpm typecheck` e `pnpm test`.
 

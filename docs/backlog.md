@@ -18,9 +18,55 @@ Cada item tem o **porquê** e **quando** faz sentido. Marque `[x]` ao concluir (
   troca de e-mail). Guardar o HTML versionado no repositório e aplicar no Supabase.
 - [ ] **Deploy**: web na Vercel, API + worker em container (Railway/Fly.io/Render), apontando o domínio.
   Atualizar *Site URL* e *Redirect URLs* do Supabase Auth para o domínio de produção.
+- [ ] **Publicar o login social com a identidade do Rumo** (GitHub e Google). Checklist detalhado
+  na seção [Publicação do login social](#publicação-do-login-social) abaixo.
 - [ ] **Revisar a configuração do Auth em produção** (etapa 1d): confirmação de e-mail, senha mínima
   (no painel novo a opção não foi encontrada em *Providers → Email*; procurar em *Attack Protection*),
   limites de tentativa, lista de redirects sem `localhost`.
+
+### Publicação do login social
+
+Hoje (2026-11) os dois provedores funcionam só em desenvolvimento: o OAuth App do GitHub está na conta
+pessoal e o app do Google está em **modo de teste** (só os e-mails cadastrados como usuários de teste entram).
+
+**Pré-requisitos (servem para os dois):**
+
+- [ ] Domínio próprio e o app em produção (ver itens acima).
+- [ ] **Logo** do Rumo em PNG quadrado (o Google pede 120×120 px, até 1 MB; o GitHub aceita imagem
+  quadrada e permite escolher a cor de fundo do badge).
+- [ ] **Páginas públicas de Política de Privacidade e Termos de Uso** no domínio (ex.: `/privacidade`
+  e `/termos`). O Google exige a política para publicar.
+- [ ] **E-mail de suporte no domínio** (ex.: `suporte@<dominio>`, pode ser só um encaminhamento
+  para o Gmail via Cloudflare Email Routing).
+- [ ] **(Opcional) Domínio personalizado no Supabase Auth** (ex.: `auth.<dominio>`, add-on pago).
+  Sem ele, a tela do Google mostra "para continuar em **boyrsuqycecpsnvyxqtf.supabase.co**", que
+  passa pouca confiança. Com ele, mostra o domínio do Rumo. Exige atualizar os callbacks nos dois provedores.
+
+**GitHub** ([github.com/settings/developers](https://github.com/settings/developers)):
+
+- [ ] Criar uma **organização** (grátis, ex.: `rumo-app`) e **transferir o OAuth App** para ela
+  (*app → Transfer ownership*). A tela de autorização passa de "Rumo by LucasMedici" para "Rumo by rumo-app".
+- [ ] Atualizar **logo**, **cor do badge**, **descrição** e **Homepage URL** (domínio de produção).
+- [ ] Criar um **OAuth App separado para produção** (callback do projeto Supabase de produção ou do
+  domínio personalizado) e manter o atual só para desenvolvimento.
+- [ ] Gerar um **novo client secret** para produção e nunca reaproveitar o de desenvolvimento.
+
+**Google** ([console.cloud.google.com](https://console.cloud.google.com), projeto `rumo-515900`, menu *Google Auth Platform*):
+
+- [ ] **Branding**: nome `Rumo`, logo, e-mail de suporte, *Página inicial do app*, *Política de
+  privacidade*, *Termos de serviço*, **domínios autorizados** (o domínio do Rumo) e contato do desenvolvedor.
+- [ ] **Verificar a propriedade do domínio** no Google Search Console (exigido para domínios autorizados).
+- [ ] **Clientes**: criar um cliente de produção com origem `https://<dominio>` e o callback de
+  produção; manter o atual (com `localhost`) só para desenvolvimento.
+- [ ] **Público-alvo → Publicar app** (status passa de *Teste* para *Em produção*).
+- [ ] **Verificação de marca** do Google: como só pedimos escopos básicos (e-mail e perfil), não há
+  verificação de escopos sensíveis, mas exibir **nome e logo** na tela de consentimento exige verificar
+  a marca (*Central de verificação*). Leva alguns dias úteis; enquanto isso o login funciona sem o logo.
+
+**Supabase:**
+
+- [ ] Colar as credenciais de produção em *Authentication → Sign In / Providers* (GitHub e Google).
+- [ ] *URL Configuration*: *Site URL* e *Redirect URLs* com o domínio de produção, sem `localhost`.
 
 ## 🟡 Antes de virar SaaS
 
@@ -30,6 +76,13 @@ Cada item tem o **porquê** e **quando** faz sentido. Marque `[x]` ao concluir (
   (React Email) e idioma do usuário — um layout único para todos os e-mails do Rumo.
 - [ ] **Plano do Supabase**: o Free pausa o projeto após ~1 semana sem uso e tem 500 MB de banco.
   Avaliar o Pro quando houver usuários reais.
+- [ ] **Cota de Log Ingestion da organização (1 GB/mês no Free, cobrada a partir do início de 2027)**.
+  A cota é compartilhada entre todos os projetos da organização; em 2026-11 o projeto
+  *finance-assistent* respondia por ~0,47 GB e o Rumo por < 0,01 GB. Investigar a origem no outro
+  projeto (Logs Explorer) e, quando o worker com pg-boss existir (etapa 4), conferir que ele não gera logs.
+  **Causa encontrada (2026-11-24):** Data API desligada faz o PostgREST logar `pg_pgrst_no_exposed_schemas`
+  a cada ~30s. Solução: religar expondo só o `public`. Conferir no Rumo e no finance-assistent se o
+  contador de logs do PostgREST zerou.
 - [ ] **Testes de segurança do banco no CI** (hoje rodam só localmente): usar um banco de CI
   ou um segredo de leitura no GitHub Actions.
 

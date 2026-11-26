@@ -5,7 +5,13 @@ import { publicEnv } from '@/lib/env'
 import { HOME_ROUTE, safeNextPath } from '@/lib/routes'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { authErrorMessage, type FormState, validationErrors } from './form-state'
-import { forgotPasswordSchema, resetPasswordSchema, signInSchema, signUpSchema } from './schemas'
+import {
+  forgotPasswordSchema,
+  oauthProviderSchema,
+  resetPasswordSchema,
+  signInSchema,
+  signUpSchema,
+} from './schemas'
 
 const callbackUrl = (next: string) =>
   `${publicEnv.NEXT_PUBLIC_SITE_URL}/auth/callback?next=${encodeURIComponent(next)}`
@@ -20,6 +26,22 @@ export async function signIn(_: FormState, formData: FormData): Promise<FormStat
   if (error) return { error: authErrorMessage(error), values }
 
   redirect(safeNextPath(formData.get('next')?.toString()))
+}
+
+/** Starts the OAuth flow; the provider sends the user back to /auth/callback. */
+export async function signInWithProvider(formData: FormData) {
+  const provider = oauthProviderSchema.safeParse(formData.get('provider'))
+  if (!provider.success) redirect('/login?error=oauth')
+
+  const next = safeNextPath(formData.get('next')?.toString())
+  const supabase = await createSupabaseServerClient()
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: provider.data,
+    options: { redirectTo: callbackUrl(next) },
+  })
+  if (error || !data.url) redirect('/login?error=oauth')
+
+  redirect(data.url)
 }
 
 export async function signUp(_: FormState, formData: FormData): Promise<FormState> {

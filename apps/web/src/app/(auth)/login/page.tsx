@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { Suspense } from 'react'
 import { AuthCard } from '@/features/auth/components/auth-card'
 import { LoginForm } from '@/features/auth/components/login-form'
+import { OAuthButtons } from '@/features/auth/components/oauth-buttons'
+import { OrSeparator } from '@/features/auth/components/or-separator'
 
 export const metadata: Metadata = { title: 'Entrar · Rumo' }
 
@@ -20,9 +22,13 @@ export default function LoginPage() {
         </>
       }
     >
-      {/* LoginForm reads ?next= and ?error= from the URL, which is request-time data. */}
+      {/* These read ?next= and ?error= from the URL, which is request-time data. */}
       <Suspense>
-        <LoginForm />
+        <div className="grid gap-6">
+          <OAuthButtons />
+          <OrSeparator />
+          <LoginForm />
+        </div>
       </Suspense>
     </AuthCard>
   )

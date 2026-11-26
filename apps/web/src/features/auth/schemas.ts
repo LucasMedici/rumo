@@ -27,6 +27,9 @@ export const signUpSchema = z
 
 export const forgotPasswordSchema = z.object({ email })
 
+export const oauthProviderSchema = z.enum(['github', 'google'])
+export type OAuthProvider = z.infer<typeof oauthProviderSchema>
+
 export const resetPasswordSchema = z
   .object({ password, confirmPassword: z.string() })
   .refine((data) => data.password === data.confirmPassword, {

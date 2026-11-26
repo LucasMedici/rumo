@@ -9,16 +9,19 @@ import { initialFormState } from '../form-state'
 import { FormField } from './form-field'
 import { FormMessage } from './form-message'
 
-const LINK_ERROR = 'O link expirou ou já foi usado. Entre novamente ou peça um novo link.'
+const URL_ERRORS: Record<string, string> = {
+  link: 'O link expirou ou já foi usado. Entre novamente ou peça um novo link.',
+  oauth: 'Não foi possível entrar com essa conta agora. Tente novamente ou use e-mail e senha.',
+}
 
 export function LoginForm() {
   const searchParams = useSearchParams()
   const [state, formAction, pending] = useActionState(signIn, initialFormState)
-  const linkError = searchParams.get('error') === 'link' ? LINK_ERROR : undefined
+  const urlError = URL_ERRORS[searchParams.get('error') ?? '']
 
   return (
     <form action={formAction} className="grid gap-4" noValidate>
-      <FormMessage error={state.error ?? linkError} />
+      <FormMessage error={state.error ?? urlError} />
       <input type="hidden" name="next" value={searchParams.get('next') ?? ''} />
       <FormField
         name="email"

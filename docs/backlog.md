@@ -77,6 +77,11 @@ pessoal e o app do Google está em **modo de teste** (só os e-mails cadastrados
 
 ## 🟡 Antes de virar SaaS
 
+- [ ] **Licenças das fontes de vagas para uso comercial.** Os termos permitem o uso pessoal, mas não um
+  produto que gere receita: a **Adzuna** exige "licence agreement" para "any use in a product or service
+  that generates revenue or leads"; a **Remotive** considera quebra de termos exibir as vagas para captar
+  cadastros e oferece uma API privada paga para outros usos. Revisar os termos de cada fonte antes de
+  abrir o Rumo a outros usuários (verificado em 2026-11-27).
 - [ ] **Usuário de banco com privilégio mínimo** (`rumo_app`, acesso só ao schema `rumo`) em vez de
   conectar como `postgres`. Limita o estrago em caso de vazamento do `.env` ou falha na API.
 - [ ] **Send Email Hook**: a API passa a enviar os e-mails de auth via Resend, com templates em React
@@ -95,6 +100,9 @@ pessoal e o app do Google está em **modo de teste** (só os e-mails cadastrados
   contador de logs do PostgREST zerou.
 - [ ] **CSP mais estrita na web** (hoje sem nonce, com `'unsafe-inline'` em scripts, para manter as
   páginas estáticas): avaliar o SRI experimental do Next ou nonces quando houver conteúdo de terceiros.
+- [ ] **Ingestão mais rápida**: hoje cada vaga faz várias idas e voltas ao banco (~1,5 s por vaga a partir do
+  Brasil até o Supabase nos EUA; 17 vagas = 22–30 s). Processar em lotes (buscar hashes e listings de uma vez,
+  `createMany`/transações por lote) quando as buscas passarem de algumas dezenas de vagas.
 - [ ] **Testes de segurança do banco no CI** (hoje rodam só localmente): usar um banco de CI
   ou um segredo de leitura no GitHub Actions.
 
@@ -120,6 +128,14 @@ pessoal e o app do Google está em **modo de teste** (só os e-mails cadastrados
 - [ ] **Import manual com IA**: colar o texto da vaga e um LLM separa cargo, empresa, senioridade,
   modalidade, salário e requisitos. Útil também para extrair skills (etapa 8).
 
+- [ ] **Adzuna exige plano pago** (confirmado em 2026-11-27: cerca de 5.000/mês; a camada grátis é só para avaliação).
+  Reavaliar se a cobertura das fontes gratuitas (Remotive, GitHub Issues, Himalayas/RemoteOK, ATS) não for
+  suficiente. Antes de integrar qualquer fonte, conferir os termos **e** a página de planos da conta, não só a
+  documentação. O adapter não foi implementado.
+- [ ] **Cobertura da Remotive é pequena** (2026-11-27): a categoria *Software Development* tinha só 17 vagas, e
+  com categoria definida o termo de busca não filtrava (typescript, node.js e node trouxeram as mesmas 17,
+  incluindo vagas fora de tecnologia). Somar outra fonte internacional gratuita (Himalayas ou RemoteOK) e
+  usar o Quality/Match Score para filtrar o ruído.
 - [ ] **Descoberta automática de boards ATS**: quando uma vaga de agregador aponta para
   Greenhouse/Lever/Ashby, passar a buscar todas as vagas daquela empresa direto na fonte.
 - [ ] **Ingestão de alertas por e-mail** (LinkedIn, Gupy, Indeed): filtro no Gmail encaminha os

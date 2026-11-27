@@ -9,6 +9,7 @@ import {
 import type { Prisma } from '../../infra/prisma.js'
 import { ForbiddenError, NotFoundError, ValidationError } from '../../shared/errors.js'
 import { cleanCompanyDisplayName, normalizeCompanyName } from './domain/company-name.js'
+import type { SourceJob } from './domain/source-job.js'
 import {
   detailInclude,
   isEditableBy,
@@ -120,6 +121,87 @@ export class JobsService {
     if (count === 0) throw new NotFoundError('Job')
   }
 
+  /**
+   * Creates or updates the job behind a source posting, identified by (source, externalId).
+   * The input must already be validated with `sourceJobSchema`. A posting seen again also
+   * re-opens the job and refreshes `lastSeenAt`.
+   */
+  async upsertFromSource(
+    sourceKey: string,
+    externalId: string,
+    input: SourceJob,
+  ): Promise<{ jobId: string; outcome: 'created' | 'updated' }> {
+    const now = new Date()
+    const existing = await this.prisma.jobListing.findUnique({
+      where: { sourceKey_externalId: { sourceKey, externalId } },
+      select: { jobId: true },
+    })
+
+    if (existing) {
+      await this.prisma.$transaction(async (tx) => {
+        const companyId = await upsertCompany(tx, input.companyName)
+        await tx.job.update({
+          where: { id: existing.jobId },
+          data: {
+            ...toSourceJobData(input),
+            companyId,
+            lastSeenAt: now,
+            status: 'open',
+            closedAt: null,
+          },
+        })
+        await tx.jobListing.update({
+          where: { sourceKey_externalId: { sourceKey, externalId } },
+          data: { url: input.sourceUrl, lastSeenAt: now },
+        })
+      })
+      return { jobId: existing.jobId, outcome: 'updated' }
+    }
+
+    try {
+      const jobId = await this.prisma.$transaction(async (tx) => {
+        const companyId = await upsertCompany(tx, input.companyName)
+        const job = await tx.job.create({
+          data: { ...toSourceJobData(input), companyId, firstSeenAt: now, lastSeenAt: now },
+        })
+        await tx.jobListing.create({
+          data: { jobId: job.id, sourceKey, externalId, url: input.sourceUrl },
+        })
+        return job.id
+      })
+      return { jobId, outcome: 'created' }
+    } catch (error) {
+      // Another run created the same posting concurrently: fall back to an update.
+      if (isUniqueViolation(error)) return this.upsertFromSource(sourceKey, externalId, input)
+      throw error
+    }
+  }
+
+  /**
+   * Marks a posting (and its job) as still published, without touching its content.
+   * Returns the job id, or null when the posting was never turned into a job.
+   */
+  async touchFromSource(sourceKey: string, externalId: string): Promise<string | null> {
+    const listing = await this.prisma.jobListing.findUnique({
+      where: { sourceKey_externalId: { sourceKey, externalId } },
+      select: { jobId: true },
+    })
+    if (!listing) return null
+
+    const now = new Date()
+    await this.prisma.$transaction([
+      this.prisma.jobListing.update({
+        where: { sourceKey_externalId: { sourceKey, externalId } },
+        data: { lastSeenAt: now },
+      }),
+      this.prisma.job.update({
+        where: { id: listing.jobId },
+        data: { lastSeenAt: now, status: 'open', closedAt: null },
+      }),
+    ])
+    return listing.jobId
+  }
+
   private async findUserJob(userId: string, jobId: string) {
     const userJob = await this.prisma.userJob.findUnique({
       where: { userId_jobId: { userId, jobId } },
@@ -157,4 +239,28 @@ function toCreateData(input: ImportJobInput) {
     salaryCurrency: input.salaryCurrency ?? null,
     salaryPeriod: input.salaryPeriod ?? null,
   }
+}
+
+/** Maps a validated source posting to the `jobs` columns. */
+function toSourceJobData(input: SourceJob) {
+  return {
+    title: input.title,
+    description: input.description,
+    applyUrl: input.applyUrl,
+    locationText: input.locationText,
+    countryCode: input.countryCode,
+    workMode: input.workMode,
+    seniority: input.seniority,
+    employmentType: input.employmentType,
+    salaryMin: input.salary?.min ?? null,
+    salaryMax: input.salary?.max ?? null,
+    salaryCurrency: input.salary?.currency ?? null,
+    salaryPeriod: input.salary?.period ?? null,
+    postedAt: input.postedAt,
+  }
+}
+
+/** Prisma's unique constraint violation (P2002). */
+export function isUniqueViolation(error: unknown): boolean {
+  return (error as { code?: unknown } | null)?.code === 'P2002'
 }

@@ -8,6 +8,7 @@ import {
 import type { Container } from './container.js'
 import { healthRoutes } from './modules/health/health.routes.js'
 import { identityRoutes } from './modules/identity/identity.routes.js'
+import { feedsRoutes } from './modules/ingestion/feeds.routes.js'
 import { jobsRoutes } from './modules/jobs/jobs.routes.js'
 import { createRequireAuth } from './shared/auth.js'
 import { errorHandler } from './shared/error-handler.js'
@@ -50,6 +51,13 @@ export function buildApp(container: Container) {
   app.register(
     jobsRoutes({
       jobsService: container.jobsService,
+      usersService: container.usersService,
+      requireAuth,
+    }),
+  )
+  app.register(
+    feedsRoutes({
+      feedsService: container.feedsService,
       usersService: container.usersService,
       requireAuth,
     }),

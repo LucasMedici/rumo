@@ -27,6 +27,7 @@ model User {
 
   jobs             UserJob[]
   importedListings JobListing[]
+  feeds            SourceFeed[]
 
   @@map("users")
 }
@@ -133,6 +134,7 @@ model Job {
   company  Company      @relation(fields: [companyId], references: [id], onDelete: Restrict)
   listings JobListing[]
   users    UserJob[]
+  feeds    FeedJob[]
 
   @@index([companyId])
   @@map("jobs")
@@ -147,7 +149,9 @@ model JobSource {
   trustLevel Int           @default(50) @map("trust_level")
   createdAt  DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  listings JobListing[]
+  listings    JobListing[]
+  feeds       SourceFeed[]
+  rawPostings RawJobPosting[]
 
   @@map("job_sources")
 }
@@ -199,4 +203,87 @@ model UserJob {
   @@id([userId, jobId])
   @@index([userId, createdAt(sort: Desc), jobId(sort: Desc)])
   @@map("user_jobs")
+}
+
+// ─── Ingestion (automatic sources) ───────────────────────────────────────────────────────
+
+/// A saved search on a source, owned by a user (e.g. "Remotive · software · node").
+model SourceFeed {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  sourceKey String    @map("source_key")
+  name      String
+  /// Source-specific settings, validated by the source adapter's schema.
+  config    Json
+  enabled   Boolean   @default(true)
+  lastRunAt DateTime? @map("last_run_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user   User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  source JobSource      @relation(fields: [sourceKey], references: [key], onDelete: Restrict)
+  runs   IngestionRun[]
+  jobs   FeedJob[]
+
+  @@index([userId])
+  @@map("source_feeds")
+}
+
+enum IngestionRunStatus {
+  running
+  succeeded
+  failed
+
+  @@map("ingestion_run_status")
+}
+
+/// One execution of a feed: what was fetched and what happened to it.
+model IngestionRun {
+  id         String             @id @default(uuid(7)) @db.Uuid
+  feedId     String             @map("feed_id") @db.Uuid
+  status     IngestionRunStatus @default(running)
+  startedAt  DateTime           @default(now()) @map("started_at") @db.Timestamptz(6)
+  finishedAt DateTime?          @map("finished_at") @db.Timestamptz(6)
+  /// { fetched, created, updated, unchanged, failed }
+  stats      Json               @default("{}")
+  /// Summary of the failure (whole run) or of the first item errors.
+  error      String?
+
+  feed SourceFeed @relation(fields: [feedId], references: [id], onDelete: Cascade)
+
+  @@index([feedId, startedAt(sort: Desc)])
+  @@map("ingestion_runs")
+}
+
+/// The source's original payload, kept to reprocess when normalization improves.
+model RawJobPosting {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  sourceKey      String   @map("source_key")
+  externalId     String   @map("external_id")
+  payload        Json
+  /// Hash of the payload: unchanged postings skip normalization and job updates.
+  payloadHash    String   @map("payload_hash")
+  firstFetchedAt DateTime @default(now()) @map("first_fetched_at") @db.Timestamptz(6)
+  lastFetchedAt  DateTime @default(now()) @map("last_fetched_at") @db.Timestamptz(6)
+
+  source JobSource @relation(fields: [sourceKey], references: [key], onDelete: Restrict)
+
+  @@unique([sourceKey, externalId])
+  @@index([lastFetchedAt])
+  @@map("raw_job_postings")
+}
+
+/// Which jobs each feed found (drives the user's "new jobs" list).
+model FeedJob {
+  feedId      String   @map("feed_id") @db.Uuid
+  jobId       String   @map("job_id") @db.Uuid
+  firstSeenAt DateTime @default(now()) @map("first_seen_at") @db.Timestamptz(6)
+  lastSeenAt  DateTime @default(now()) @map("last_seen_at") @db.Timestamptz(6)
+
+  feed SourceFeed @relation(fields: [feedId], references: [id], onDelete: Cascade)
+  job  Job        @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@id([feedId, jobId])
+  @@index([jobId])
+  @@map("feed_jobs")
 }

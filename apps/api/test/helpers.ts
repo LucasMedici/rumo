@@ -2,8 +2,12 @@ import { buildApp } from '../src/app.js'
 import type { Env } from '../src/config/env.js'
 import type { Container } from '../src/container.js'
 import { InvalidTokenError, type TokenVerifier } from '../src/infra/auth/token-verifier.js'
+import type { HttpClient } from '../src/infra/http/http-client.js'
 import type { Prisma } from '../src/infra/prisma.js'
 import { UsersService } from '../src/modules/identity/users.service.js'
+import { FeedsService } from '../src/modules/ingestion/feeds.service.js'
+import { IngestionRunner } from '../src/modules/ingestion/ingestion-runner.js'
+import { createSourceRegistry } from '../src/modules/job-sources/core/registry.js'
 import { JobsService } from '../src/modules/jobs/jobs.service.js'
 
 export const testEnv: Env = {
@@ -31,6 +35,7 @@ type TestOverrides = {
   tokenVerifier?: TokenVerifier
   jobsService?: JobsService
   usersService?: UsersService
+  feedsService?: FeedsService
 }
 
 /** Builds the app with fakes, for HTTP tests that must not touch the database or the network. */
@@ -40,14 +45,25 @@ export function buildTestApp({
   tokenVerifier = rejectingVerifier,
   jobsService,
   usersService,
+  feedsService,
 }: TestOverrides = {}) {
   const fakePrisma = prisma as Prisma
+  const jobs = jobsService ?? new JobsService(fakePrisma)
+  const registry = createSourceRegistry([])
+  const noNetwork: HttpClient = {
+    getJson: async () => {
+      throw new Error('network access is not allowed in tests')
+    },
+  }
+  const runner = new IngestionRunner({ prisma: fakePrisma, registry, http: noNetwork, jobs })
   const container: Container = {
     env: { ...testEnv, ...env },
     prisma: fakePrisma,
     tokenVerifier,
     usersService: usersService ?? new UsersService(fakePrisma),
-    jobsService: jobsService ?? new JobsService(fakePrisma),
+    jobsService: jobs,
+    feedsService: feedsService ?? new FeedsService({ prisma: fakePrisma, registry, runner }),
+    ingestionRunner: runner,
     dispose: async () => {},
   }
   return buildApp(container)

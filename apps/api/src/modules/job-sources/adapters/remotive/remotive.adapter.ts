@@ -40,6 +40,8 @@ const EMPLOYMENT_TYPES: Record<string, NormalizedPosting['employmentType']> = {
 export const remotiveAdapter: JobSourceAdapter<RemotiveConfig> = {
   key: 'remotive',
   configSchema: remotiveConfigSchema,
+  // v2: salary only from the first sentence; "early career" → junior
+  normalizationVersion: 2,
   minIntervalMs: 6 * 60 * 60 * 1000,
 
   async *fetch(config, { http }) {

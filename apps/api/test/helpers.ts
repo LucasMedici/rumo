@@ -20,6 +20,7 @@ export const testEnv: Env = {
   SUPABASE_URL: 'https://test-project.supabase.co',
   RATE_LIMIT_MAX: 1000,
   TRUST_PROXY: false,
+  GITHUB_TOKEN: undefined,
 }
 
 /** Verifier that rejects every token unless a test provides one. */

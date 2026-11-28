@@ -109,7 +109,7 @@ export class IngestionRunner {
     const where = {
       sourceKey_externalId: { sourceKey: adapter.key, externalId: posting.externalId },
     }
-    const payloadHash = hashPayload(posting.payload)
+    const payloadHash = hashPayload(adapter.normalizationVersion, posting.payload)
     const previous = await prisma.rawJobPosting.findUnique({ where, select: { payloadHash: true } })
     await prisma.rawJobPosting.upsert({
       where,
@@ -146,8 +146,12 @@ export class IngestionRunner {
   }
 }
 
-function hashPayload(payload: unknown): string {
-  return createHash('sha256').update(JSON.stringify(payload)).digest('hex')
+/** Includes the normalization version: improving `normalize` re-processes existing postings. */
+function hashPayload(normalizationVersion: number, payload: unknown): string {
+  return createHash('sha256')
+    .update(`v${normalizationVersion}:`)
+    .update(JSON.stringify(payload))
+    .digest('hex')
 }
 
 function describe(error: unknown): string {

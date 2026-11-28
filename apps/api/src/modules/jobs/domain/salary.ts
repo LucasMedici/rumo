@@ -37,10 +37,13 @@ const AMOUNT = /(\d{1,3}(?:[.,]\d{3})+|\d+(?:[.,]\d{1,2})?)\s*([kK])?/g
 export function parseSalaryText(text: string | null | undefined): ParsedSalary | null {
   if (!text?.trim()) return null
 
-  const currency = detectCurrency(text)
+  // Only the first sentence: later sentences carry other numbers ("R$ 72,50 por hora. Até 36
+  // horas semanais..." must not become a 36–72 range).
+  const sentence = firstSentence(text)
+  const currency = detectCurrency(sentence)
   if (!currency) return null
 
-  const amounts = [...text.matchAll(AMOUNT)]
+  const amounts = [...sentence.matchAll(AMOUNT)]
     .map(([, number = '', thousands]) => toNumber(number) * (thousands ? 1000 : 1))
     .filter((value) => Number.isFinite(value) && value > 0)
     .slice(0, 2)
@@ -50,7 +53,7 @@ export function parseSalaryText(text: string | null | undefined): ParsedSalary |
   const min = Math.round(second === undefined ? first : Math.min(first, second))
   const max = second === undefined ? null : Math.round(Math.max(first, second))
 
-  const period = detectPeriod(text) ?? (min >= 15_000 ? 'year' : null)
+  const period = detectPeriod(sentence) ?? (min >= 15_000 ? 'year' : null)
   if (!period) return null
 
   return { min, max, currency, period }
@@ -75,4 +78,15 @@ function detectPeriod(text: string): SalaryPeriod | null {
 function toNumber(raw: string): number {
   if (/^\d{1,3}([.,]\d{3})+$/.test(raw)) return Number(raw.replace(/[.,]/g, ''))
   return Number(raw.replace(',', '.'))
+}
+
+/** First line, cut at the end of the first sentence (". " followed by more text). */
+function firstSentence(text: string): string {
+  // Markdown emphasis would hide the sentence end ("por hora.** Até...").
+  const line =
+    text
+      .replace(/[*_`]+/g, '')
+      .trim()
+      .split(/\n/)[0] ?? ''
+  return line.split(/\.\s+(?=\S)/)[0] ?? line
 }

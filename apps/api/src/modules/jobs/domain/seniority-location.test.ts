@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { countryFromLocation } from './location.js'
+import { countryFromLocation, countryMentioned } from './location.js'
 import { inferSeniority } from './seniority.js'
 
 describe('inferSeniority', () => {
@@ -23,6 +23,9 @@ describe('inferSeniority', () => {
     ['Desenvolvedor Sênior Node.js', 'senior'],
     ['Estágio em Desenvolvimento', 'intern'],
     ['Software Engineering Intern', 'intern'],
+    // Real titles from backend-br/vagas (Google, 2026-11-27)
+    ['Early Career Software Engineer, People with Disabilities', 'junior'],
+    ['Software Engineer, Early Career (For Women in Tech Candidates)', 'junior'],
   ])('%s → %s', (title, expected) => {
     expect(inferSeniority(title)).toBe(expected)
   })
@@ -57,5 +60,31 @@ describe('countryFromLocation', () => {
     '',
   ])('returns null for %j', (location) => {
     expect(countryFromLocation(location)).toBeNull()
+  })
+})
+
+describe('countryMentioned', () => {
+  it.each([
+    // Real title prefixes from backend-br/vagas (2026-11-27)
+    ['Belo Horizonte ou São Paulo, Brasil', 'BR'],
+    ['Híbrido / São Paulo, Brasil', 'BR'],
+    ['Joinville/SC', 'BR'],
+    ['Rio de Janeiro - RJ', 'BR'],
+    ['São Paulo ou Remoto, Brasil', 'BR'],
+    ['Cidade do México, México', 'MX'],
+    ['Remote (United States)', 'US'],
+  ])('%s → %s', (text, expected) => {
+    expect(countryMentioned(text)).toBe(expected)
+  })
+
+  it.each([
+    'Buenos Aires, Argentina / Cidade do México, México',
+    'São Paulo, Brasil / Santiago, Chile + 3 cidades',
+    'Remoto',
+    'Remote',
+    'Híbrido',
+    '',
+  ])('returns null for %j (none or several countries)', (text) => {
+    expect(countryMentioned(text)).toBeNull()
   })
 })

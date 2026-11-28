@@ -136,10 +136,12 @@ pessoal e o app do Google está em **modo de teste** (só os e-mails cadastrados
   com categoria definida o termo de busca não filtrava (typescript, node.js e node trouxeram as mesmas 17,
   incluindo vagas fora de tecnologia). Somar outra fonte internacional gratuita (Himalayas ou RemoteOK) e
   usar o Quality/Match Score para filtrar o ruído.
-- [ ] **Descoberta automática de boards ATS**: quando uma vaga de agregador aponta para
-  Greenhouse/Lever/Ashby, passar a buscar todas as vagas daquela empresa direto na fonte.
-- [ ] **Ingestão de alertas por e-mail** (LinkedIn, Gupy, Indeed): filtro no Gmail encaminha os
-  alertas para um endereço do Rumo, que extrai as vagas. Precisa do domínio próprio.
+- [ ] ~~Descoberta automática de boards ATS~~ → **movida para o roadmap (etapa 4.5)**.
+- [ ] **Ingestão de alertas por e-mail** (LinkedIn, Gupy, Indeed, Glassdoor) — o único caminho limpo para
+  LinkedIn e Gupy (ver `docs/research/fontes-de-vagas.md`, seção C). Desenho recomendado: filtro no Gmail →
+  encaminha para um endereço do Rumo no Cloudflare Email Routing → Worker extrai cargo, empresa, local e link →
+  API. Não seguir os links automaticamente (viraria scraping). Precisa do domínio próprio; capturar e-mails
+  reais de exemplo antes de implementar. Combinado com o usuário em 2026-11-27: fica para mais à frente.
 - [ ] **Extensão de navegador** "Salvar no Rumo" para capturar a vaga que você está vendo.
 - [ ] **Adapter Gupy opcional** (endpoint não oficial; só após ler os termos de uso; desligado por padrão).
 - [ ] **Robôs para sites específicos**: avaliar site a site (termos de uso + robots.txt), como

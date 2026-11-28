@@ -17,6 +17,8 @@ const envSchema = z.object({
    * (e.g. in production); otherwise clients could spoof their IP and bypass the rate limit.
    */
   TRUST_PROXY: z.stringbool().default(false),
+  /** Optional GitHub token (no scopes needed) to raise the API limit from 60 to 5,000 req/hour. */
+  GITHUB_TOKEN: z.string().trim().min(1).optional(),
 })
 
 export type Env = z.infer<typeof envSchema>

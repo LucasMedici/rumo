@@ -39,6 +39,7 @@ function fakeAdapter(postings: RawPosting[], options: { fetchError?: Error } = {
   const adapter: JobSourceAdapter<{ q: string }> = {
     key: 'fake',
     configSchema: z.object({ q: z.string() }),
+    normalizationVersion: 1,
     minIntervalMs: 0,
     async *fetch() {
       if (options.fetchError) throw options.fetchError
@@ -221,5 +222,28 @@ describe('IngestionRunner.recoverInterruptedRuns', () => {
         error: expect.stringContaining('Interrupted'),
       }),
     })
+  })
+})
+
+describe('normalization version', () => {
+  it('re-normalizes unchanged payloads when the adapter normalization version changes', async () => {
+    const v1 = fakeAdapter([posting('1', { title: 'Backend Engineer' })])
+    const first = setup(v1)
+    await first.runner.execute(RUN_ID, FEED)
+    const hash = (
+      first.prisma.rawJobPosting.upsert.mock.calls[0] as unknown as [
+        { create: { payloadHash: string } },
+      ]
+    )[0].create.payloadHash
+
+    const v2 = {
+      ...fakeAdapter([posting('1', { title: 'Backend Engineer' })]),
+      normalizationVersion: 2,
+    }
+    const second = setup(v2, { '1': hash })
+    const stats = await second.runner.execute(RUN_ID, FEED)
+
+    expect(stats).toMatchObject({ created: 1, unchanged: 0 })
+    expect(second.jobs.touchFromSource).not.toHaveBeenCalled()
   })
 })

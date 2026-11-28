@@ -34,9 +34,29 @@ export const remotiveConfigSchema = z
   })
 export type RemotiveConfig = z.infer<typeof remotiveConfigSchema>
 
+// ─── GitHub Issues (Brazilian community job boards) ──────────────────────────────────────
+
+/** Active community job repositories (checked 2026-11-27; stale repos left out). */
+export const githubJobRepos = [
+  'backend-br/vagas',
+  'frontendbr/vagas',
+  'CocoaHeadsBrasil/vagas',
+  'dotnetdevbr/vagas',
+] as const
+
+export const githubIssuesConfigSchema = z.object({
+  repo: z.enum(githubJobRepos),
+  /** GitHub labels that must ALL be present, e.g. ["Remoto", "Pleno"]. */
+  labels: z.array(z.string().trim().min(1).max(50)).max(5).default([]),
+  /** Kept when ANY keyword appears in the title, labels or text (case-insensitive). */
+  keywords: z.array(z.string().trim().min(2).max(50)).max(10).default([]),
+  maxResults: z.number().int().min(1).max(300).default(100),
+})
+export type GithubIssuesConfig = z.infer<typeof githubIssuesConfigSchema>
+
 // ─── Saved searches (feeds) ──────────────────────────────────────────────────────────────
 
-export const sourceKeys = ['remotive'] as const
+export const sourceKeys = ['remotive', 'github-issues'] as const
 export const sourceKeySchema = z.enum(sourceKeys)
 export type SourceKey = z.infer<typeof sourceKeySchema>
 
@@ -48,6 +68,12 @@ export const createFeedSchema = z.discriminatedUnion('sourceKey', [
     sourceKey: z.literal('remotive'),
     name: feedName,
     config: remotiveConfigSchema,
+    enabled: z.boolean().default(true),
+  }),
+  z.object({
+    sourceKey: z.literal('github-issues'),
+    name: feedName,
+    config: githubIssuesConfigSchema,
     enabled: z.boolean().default(true),
   }),
 ])

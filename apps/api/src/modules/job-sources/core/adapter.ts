@@ -25,6 +25,12 @@ export interface JobSourceAdapter<TConfig = unknown> {
   readonly key: string
   /** Validates a feed's `config` for this source. */
   readonly configSchema: z.ZodType<TConfig, unknown>
+  /**
+   * Version of this adapter's normalization. Bump it whenever `normalize` (or a shared rule it
+   * uses) changes: it is part of the raw payload hash, so the next run re-normalizes every
+   * posting of this source instead of skipping "unchanged" ones.
+   */
+  readonly normalizationVersion: number
   /** Minimum time between two runs of the same feed (source terms / courtesy). */
   readonly minIntervalMs: number
   /** Streams the postings of a search, page by page. */

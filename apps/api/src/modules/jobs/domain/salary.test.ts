@@ -25,6 +25,15 @@ describe('parseSalaryText', () => {
     ['R$ 8.000 a R$ 12.000 por mês', { min: 8000, max: 12000, currency: 'BRL', period: 'month' }],
     ['£45k', { min: 45000, max: null, currency: 'GBP', period: 'year' }],
     ['CAD 90k annually', { min: 90000, max: null, currency: 'CAD', period: 'year' }],
+    // Real case from backend-br/vagas (2026-11-27): the next sentence's "36 horas" is not a range
+    [
+      '**Valor de referência da prestação de serviços: R$ 72,50 por hora.** Até aproximadamente 36 horas semanais e 1.656 horas anuais estimadas',
+      { min: 73, max: null, currency: 'BRL', period: 'hour' },
+    ],
+    [
+      'USD 5,000 to USD 8,000 / month (Latin America)',
+      { min: 5000, max: 8000, currency: 'USD', period: 'month' },
+    ],
   ])('%s', (text, expected) => {
     expect(parseSalaryText(text)).toEqual(expected)
   })

@@ -14,6 +14,7 @@ const SIX_HOURS = 6 * 60 * 60 * 1000
 const remotive: JobSourceAdapter = {
   key: 'remotive',
   configSchema: remotiveConfigSchema,
+  normalizationVersion: 1,
   minIntervalMs: SIX_HOURS,
   async *fetch() {},
   normalize: () => {

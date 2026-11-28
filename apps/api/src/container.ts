@@ -6,6 +6,7 @@ import { createPrisma, type Prisma } from './infra/prisma.js'
 import { UsersService } from './modules/identity/users.service.js'
 import { FeedsService } from './modules/ingestion/feeds.service.js'
 import { IngestionRunner } from './modules/ingestion/ingestion-runner.js'
+import { createGithubIssuesAdapter } from './modules/job-sources/adapters/github-issues/github-issues.adapter.js'
 import { remotiveAdapter } from './modules/job-sources/adapters/remotive/remotive.adapter.js'
 import { createSourceRegistry } from './modules/job-sources/core/registry.js'
 import { JobsService } from './modules/jobs/jobs.service.js'
@@ -28,7 +29,10 @@ export type Container = {
 export function createContainer(env: Env): Container {
   const prisma = createPrisma(env.DATABASE_URL)
   const jobsService = new JobsService(prisma)
-  const registry = createSourceRegistry([remotiveAdapter])
+  const registry = createSourceRegistry([
+    remotiveAdapter,
+    createGithubIssuesAdapter({ token: env.GITHUB_TOKEN }),
+  ])
   const ingestionRunner = new IngestionRunner({
     prisma,
     registry,

@@ -12,7 +12,7 @@ const RULES: [RegExp, Seniority][] = [
   [/\b(tech lead|technical lead|team lead|lead|l[ií]der t[eé]cnic[oa])\b/i, 'lead'],
   [/\b(senior|s[eê]nior|sr\.?)(?=\W|$)/i, 'senior'],
   [/\b(mid[- ]?level|mid|pleno|intermediate)\b/i, 'mid'],
-  [/\b(junior|j[uú]nior|jr\.?|entry[- ]level|graduate)(?=\W|$)/i, 'junior'],
+  [/\b(junior|j[uú]nior|jr\.?|entry[- ]level|early[- ]career|graduate)(?=\W|$)/i, 'junior'],
 ]
 
 /** Infers seniority from a job title; null when the title doesn't say. */

@@ -9,6 +9,7 @@ import {
   Mic,
   Monitor,
   Moon,
+  Search,
   Sun,
 } from 'lucide-react'
 import Link from 'next/link'
@@ -42,7 +43,10 @@ import { signOut } from '@/features/auth/actions'
 import { useMe } from '@/features/identity/use-me'
 import { type ThemePreference, useTheme } from '@/lib/theme'
 
-const NAV = [{ href: '/jobs', label: 'Vagas', icon: Briefcase }]
+const NAV = [
+  { href: '/jobs', label: 'Minhas vagas', icon: Briefcase },
+  { href: '/searches', label: 'Buscas', icon: Search },
+]
 
 /** Modules on the roadmap, shown so the hub structure is visible (not clickable yet). */
 const UPCOMING = [

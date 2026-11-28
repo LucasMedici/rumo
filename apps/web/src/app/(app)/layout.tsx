@@ -16,7 +16,8 @@ export default function AppLayout({ children }: LayoutProps<'/'>) {
               <Brand />
             </span>
           </header>
-          <div className="mx-auto w-full max-w-5xl px-4 pt-2 pb-10 md:px-8">{children}</div>
+          {/* Each page sets its own max width (lists are narrower than Descobrir's split view). */}
+          <div className="w-full px-4 pt-2 pb-10 md:px-8">{children}</div>
         </SidebarInset>
       </SidebarProvider>
     </TooltipProvider>

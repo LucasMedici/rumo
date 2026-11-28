@@ -96,11 +96,23 @@ export function formatSalary(salary: NonNullable<JobSummary['salary']>): string 
 export function formatLocation(job: Pick<JobSummary, 'workMode' | 'locationText' | 'countryCode'>) {
   return [
     job.workMode ? WORK_MODE_LABELS[job.workMode] : null,
-    job.locationText,
+    meaningfulLocation(job),
     job.countryCode ? countryName(job.countryCode) : null,
   ]
     .filter(Boolean)
     .join(' · ')
+}
+
+const WORK_MODE_WORDS = /^(remoto|remote|h[ií]brido|hybrid|presencial|on-?site)$/i
+
+/**
+ * The location text, unless it only repeats the work mode ("[Remoto]" titles give
+ * workMode=remote AND locationText="Remoto", which would read "Remoto · Remoto").
+ */
+export function meaningfulLocation(job: Pick<JobSummary, 'workMode' | 'locationText'>) {
+  const text = job.locationText?.trim()
+  if (!text) return null
+  return job.workMode && WORK_MODE_WORDS.test(text) ? null : text
 }
 
 const relativeTime = new Intl.RelativeTimeFormat('pt-BR', { numeric: 'auto' })
@@ -119,4 +131,21 @@ export function jobDateLabel(job: Pick<JobSummary, 'addedAt' | 'foundAt'>, now =
   if (job.addedAt) return `Adicionada ${formatRelativeDate(job.addedAt, now)}`
   if (job.foundAt) return `Encontrada ${formatRelativeDate(job.foundAt, now)}`
   return null
+}
+
+/** Badge text for a job source ("Importada por você", "via Remotive", "via GitHub"). */
+export function sourceLabel(source: { key: string; name: string }): string {
+  if (source.key === 'manual') return 'Importada por você'
+  if (source.key === 'github-issues') return 'via GitHub'
+  return `via ${source.name}`
+}
+
+/** "Nova" while a discovered job is recent and not saved yet. */
+export function isNewDiscovery(
+  job: Pick<JobSummary, 'foundAt' | 'inList'>,
+  now = new Date(),
+  days = 3,
+): boolean {
+  if (job.inList || !job.foundAt) return false
+  return now.getTime() - new Date(job.foundAt).getTime() < days * 86_400_000
 }

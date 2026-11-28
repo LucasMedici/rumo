@@ -11,6 +11,7 @@ import {
   Moon,
   Search,
   Sun,
+  Telescope,
 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -44,6 +45,7 @@ import { useMe } from '@/features/identity/use-me'
 import { type ThemePreference, useTheme } from '@/lib/theme'
 
 const NAV = [
+  { href: '/discover', label: 'Descobrir', icon: Telescope },
   { href: '/jobs', label: 'Minhas vagas', icon: Briefcase },
   { href: '/searches', label: 'Buscas', icon: Search },
 ]

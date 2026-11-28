@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: 'Minhas vagas · Rumo' }
 
 export default function JobsPage() {
   return (
-    <div className="grid gap-6">
+    <div className="mx-auto grid max-w-5xl gap-6">
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="font-semibold text-2xl tracking-tight">Minhas vagas</h1>

@@ -39,6 +39,20 @@ export function useJobs() {
   })
 }
 
+/** Jobs found by the user's saved searches ("Descobrir"), page by page. */
+export function useDiscover() {
+  return useInfiniteQuery({
+    queryKey: ['discover'],
+    queryFn: ({ pageParam }) => {
+      const params = new URLSearchParams({ limit: String(PAGE_SIZE) })
+      if (pageParam) params.set('cursor', pageParam)
+      return authedApiFetch(`/discover?${params}`, jobListResponseSchema)
+    },
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+  })
+}
+
 export function useJob(id: string) {
   return useQuery({
     queryKey: jobKeys.detail(id),
@@ -70,13 +84,31 @@ export function useUpdateJob(id: string) {
   )
 }
 
+/** Adds a discovered job to "Minhas vagas". */
+export function useSaveJob(id: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => authedApiFetch(`/jobs/${id}/save`, jobDetailSchema, { method: 'POST' }),
+    onSuccess: (job) => {
+      queryClient.setQueryData(jobKeys.detail(job.id), job)
+      return Promise.all([
+        queryClient.invalidateQueries({ queryKey: jobKeys.list() }),
+        queryClient.invalidateQueries({ queryKey: ['discover'] }),
+      ])
+    },
+  })
+}
+
+/** Removes the job from "Minhas vagas" (it stays in "Descobrir" if a search found it). */
 export function useRemoveJob(id: string) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: () => authedApiFetch(`/jobs/${id}`, z.null(), { method: 'DELETE' }),
-    onSuccess: () => {
-      queryClient.removeQueries({ queryKey: jobKeys.detail(id) })
-      return queryClient.invalidateQueries({ queryKey: jobKeys.list() })
-    },
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: jobKeys.detail(id) }),
+        queryClient.invalidateQueries({ queryKey: jobKeys.list() }),
+        queryClient.invalidateQueries({ queryKey: ['discover'] }),
+      ]),
   })
 }

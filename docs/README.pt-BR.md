@@ -102,8 +102,8 @@ rumo/
 - [x] Banco de dados (Supabase + Prisma), segurança e CI
 - [x] Autenticação (e-mail e senha, GitHub, Google) e proteções na API
 - [x] Modelo de vagas, import manual, listagem e detalhe
-- [ ] Primeiras fontes de vagas (ATS e agregadores)
-- [ ] Ingestão agendada
+- [x] Primeiras fontes de vagas (Remotive, vagas da comunidade no GitHub), buscas salvas e a tela Descobrir
+- [ ] Ingestão agendada, Himalayas e ATS das empresas (Greenhouse, Lever, Ashby)
 - [ ] Busca e filtros
 - [ ] Deduplicação entre fontes
 - [ ] Favoritos e acompanhamento de candidaturas

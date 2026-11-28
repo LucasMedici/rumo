@@ -37,6 +37,15 @@ describe('formatLocation', () => {
     ).toBe('Remoto · Americas · Estados Unidos')
   })
 
+  it('does not repeat the work mode ("[Remoto]" titles)', () => {
+    expect(formatLocation({ workMode: 'remote', locationText: 'Remoto', countryCode: null })).toBe(
+      'Remoto',
+    )
+    expect(formatLocation({ workMode: 'hybrid', locationText: 'Híbrido', countryCode: 'BR' })).toBe(
+      'Híbrido · Brasil',
+    )
+  })
+
   it('skips missing parts', () => {
     expect(formatLocation({ workMode: null, locationText: null, countryCode: 'BR' })).toBe('Brasil')
     expect(formatLocation({ workMode: null, locationText: null, countryCode: null })).toBe('')

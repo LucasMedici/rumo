@@ -16,26 +16,35 @@ import {
 import { Button } from '@/components/ui/button'
 import { useRemoveJob } from '../api'
 
-export function RemoveJobButton({ jobId, jobTitle }: { jobId: string; jobTitle: string }) {
+type Props = {
+  jobId: string
+  jobTitle: string
+  /** Called after removal; by default goes back to "Minhas vagas". */
+  onRemoved?: () => void
+}
+
+export function RemoveJobButton({ jobId, jobTitle, onRemoved }: Props) {
   const router = useRouter()
   const removeJob = useRemoveJob(jobId)
 
   async function handleRemove() {
     await removeJob.mutateAsync()
-    router.push('/jobs')
+    if (onRemoved) onRemoved()
+    else router.push('/jobs')
   }
 
   return (
     <AlertDialog>
       <AlertDialogTrigger render={<Button variant="outline" />}>
         <Trash2 aria-hidden="true" />
-        Remover
+        Remover da lista
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Remover vaga da sua lista?</AlertDialogTitle>
           <AlertDialogDescription>
-            “{jobTitle}” deixa de aparecer em Minhas vagas. Você pode importá-la de novo depois.
+            “{jobTitle}” deixa de aparecer em Minhas vagas. Se uma busca sua a encontrou, ela
+            continua em Descobrir.
           </AlertDialogDescription>
         </AlertDialogHeader>
         {removeJob.isError ? (

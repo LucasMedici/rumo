@@ -11,10 +11,10 @@ import { ForbiddenError, NotFoundError, ValidationError } from '../../shared/err
 import { cleanCompanyDisplayName, normalizeCompanyName } from './domain/company-name.js'
 import type { SourceJob } from './domain/source-job.js'
 import {
-  detailInclude,
+  accessibleBy,
   isEditableBy,
+  jobInclude,
   MANUAL_SOURCE,
-  summaryInclude,
   toJobDetail,
   toJobSummary,
 } from './jobs.mapper.js'
@@ -50,38 +50,73 @@ export class JobsService {
     return this.getForUser(userId, jobId)
   }
 
-  /** The user's jobs, newest first, with cursor pagination. */
+  /** The user's list ("Minhas vagas"), most recently added first, with cursor pagination. */
   async listForUser(userId: string, { limit, cursor }: ListJobsQuery): Promise<JobListResponse> {
     const rows = await this.prisma.userJob.findMany({
       where: { userId },
       orderBy: [{ createdAt: 'desc' }, { jobId: 'desc' }],
       take: limit + 1,
       ...(cursor && { cursor: { userId_jobId: { userId, jobId: cursor } }, skip: 1 }),
-      include: summaryInclude,
+      include: { job: { include: jobInclude(userId) } },
+    })
+
+    const hasMore = rows.length > limit
+    const page = hasMore ? rows.slice(0, limit) : rows
+    return {
+      items: page.map((row) => toJobSummary(row.job)),
+      nextCursor: hasMore ? (page.at(-1)?.jobId ?? null) : null,
+    }
+  }
+
+  /**
+   * Jobs found by the user's saved searches ("Descobrir"), newest first. Saved ones stay in the
+   * list, flagged with `inList`.
+   */
+  async discoverForUser(
+    userId: string,
+    { limit, cursor }: ListJobsQuery,
+  ): Promise<JobListResponse> {
+    const rows = await this.prisma.job.findMany({
+      where: { feeds: { some: { feed: { userId } } } },
+      orderBy: [{ firstSeenAt: 'desc' }, { id: 'desc' }],
+      take: limit + 1,
+      ...(cursor && { cursor: { id: cursor }, skip: 1 }),
+      include: jobInclude(userId),
     })
 
     const hasMore = rows.length > limit
     const page = hasMore ? rows.slice(0, limit) : rows
     return {
       items: page.map(toJobSummary),
-      nextCursor: hasMore ? (page.at(-1)?.jobId ?? null) : null,
+      nextCursor: hasMore ? (page.at(-1)?.id ?? null) : null,
     }
   }
 
-  /** A job from the user's list. Jobs outside the list are reported as not found. */
+  /** A job the user can see (in their list or found by their searches); otherwise not found. */
   async getForUser(userId: string, jobId: string): Promise<JobDetail> {
-    return toJobDetail(await this.findUserJob(userId, jobId), userId)
+    return toJobDetail(await this.findAccessible(userId, jobId), userId)
+  }
+
+  /** Adds a job found by the user's searches to their list. Idempotent. */
+  async saveForUser(userId: string, jobId: string): Promise<JobDetail> {
+    await this.findAccessible(userId, jobId)
+    await this.prisma.userJob.upsert({
+      where: { userId_jobId: { userId, jobId } },
+      create: { userId, jobId, origin: 'saved' },
+      update: {},
+    })
+    return this.getForUser(userId, jobId)
   }
 
   /** Edits a manually imported job. `null` clears an optional field. */
   async updateManual(userId: string, jobId: string, input: UpdateJobInput): Promise<JobDetail> {
-    const userJob = await this.findUserJob(userId, jobId)
-    if (!isEditableBy(userJob, userId)) {
+    const job = await this.findAccessible(userId, jobId)
+    if (!isEditableBy(job, userId)) {
       throw new ForbiddenError('Only jobs you imported manually can be edited')
     }
 
     const { companyName, ...changes } = input
-    const current = userJob.job
+    const current = job
     const salary = salaryStateSchema.safeParse({
       salaryMin: changes.salaryMin !== undefined ? changes.salaryMin : current.salaryMin,
       salaryMax: changes.salaryMax !== undefined ? changes.salaryMax : current.salaryMax,
@@ -202,13 +237,13 @@ export class JobsService {
     return listing.jobId
   }
 
-  private async findUserJob(userId: string, jobId: string) {
-    const userJob = await this.prisma.userJob.findUnique({
-      where: { userId_jobId: { userId, jobId } },
-      include: detailInclude,
+  private async findAccessible(userId: string, jobId: string) {
+    const job = await this.prisma.job.findFirst({
+      where: { id: jobId, ...accessibleBy(userId) },
+      include: jobInclude(userId),
     })
-    if (!userJob) throw new NotFoundError('Job')
-    return userJob
+    if (!job) throw new NotFoundError('Job')
+    return job
   }
 }
 

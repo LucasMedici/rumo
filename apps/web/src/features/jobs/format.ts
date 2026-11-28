@@ -113,3 +113,10 @@ export function formatRelativeDate(iso: string, now = new Date()): string {
   if (Math.abs(days) < 365) return relativeTime.format(Math.round(days / 30), 'month')
   return relativeTime.format(Math.round(days / 365), 'year')
 }
+
+/** "Adicionada há 2 dias" (in the user's list) or "Encontrada ontem" (found by a saved search). */
+export function jobDateLabel(job: Pick<JobSummary, 'addedAt' | 'foundAt'>, now = new Date()) {
+  if (job.addedAt) return `Adicionada ${formatRelativeDate(job.addedAt, now)}`
+  if (job.foundAt) return `Encontrada ${formatRelativeDate(job.foundAt, now)}`
+  return null
+}

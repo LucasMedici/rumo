@@ -73,6 +73,23 @@ describe('github issues adapter: fetch', () => {
     expect(postings).toHaveLength(2)
   })
 
+  it('skips locked issues (repository notices such as the posting rules)', async () => {
+    // Real case: backend-br/vagas#11027 "[PT-BR] - Regras para divulgação de vagas." (locked)
+    const rules = {
+      ...fixture[0],
+      number: 11027,
+      title: '[PT-BR] - Regras para divulgação de vagas.',
+      labels: [],
+      locked: true,
+    }
+    const { http } = httpReturning([rules, ...fixture])
+
+    const postings = await collect(adapter.fetch(config(), { http }))
+
+    expect(postings.map((p) => p.externalId)).not.toContain('backend-br/vagas#11027')
+    expect(postings).toHaveLength(fixture.length)
+  })
+
   it('paginates while pages are full', async () => {
     const fullPage = Array.from({ length: 100 }, (_, i) => ({ ...fixture[0], number: 1000 + i }))
     const { http, getJson } = httpReturning(fullPage, fixture)

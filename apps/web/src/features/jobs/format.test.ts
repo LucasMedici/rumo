@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatLocation, formatRelativeDate, formatSalary } from './format'
+import { formatLocation, formatRelativeDate, formatSalary, jobDateLabel } from './format'
 
 // Intl uses a non-breaking space between the currency symbol and the amount.
 const normalize = (value: string) => value.replace(/\s/g, ' ')
@@ -57,5 +57,25 @@ describe('formatRelativeDate', () => {
     [800, 'há 2 anos'],
   ])('%i days ago → %s', (days, expected) => {
     expect(formatRelativeDate(daysAgo(days), now)).toBe(expected)
+  })
+})
+
+describe('jobDateLabel', () => {
+  const now = new Date('2026-11-27T12:00:00Z')
+
+  it('prefers when the job entered the user list', () => {
+    expect(
+      jobDateLabel({ addedAt: '2026-11-26T12:00:00Z', foundAt: '2026-11-20T12:00:00Z' }, now),
+    ).toBe('Adicionada ontem')
+  })
+
+  it('falls back to when a saved search found it', () => {
+    expect(jobDateLabel({ addedAt: null, foundAt: '2026-11-24T12:00:00Z' }, now)).toBe(
+      'Encontrada há 3 dias',
+    )
+  })
+
+  it('returns null without dates', () => {
+    expect(jobDateLabel({ addedAt: null, foundAt: null }, now)).toBeNull()
   })
 })

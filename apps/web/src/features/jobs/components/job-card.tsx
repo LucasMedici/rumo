@@ -2,7 +2,7 @@ import type { JobSummary } from '@rumo/contracts'
 import { Building2, MapPin, Wallet } from 'lucide-react'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
-import { formatLocation, formatRelativeDate, formatSalary, SENIORITY_LABELS } from '../format'
+import { formatLocation, formatSalary, jobDateLabel, SENIORITY_LABELS } from '../format'
 
 export function JobCard({ job }: { job: JobSummary }) {
   const location = formatLocation(job)
@@ -43,7 +43,7 @@ export function JobCard({ job }: { job: JobSummary }) {
             {formatSalary(job.salary)}
           </span>
         ) : null}
-        <span className="ml-auto text-xs">Adicionada {formatRelativeDate(job.addedAt)}</span>
+        <span className="ml-auto text-xs">{jobDateLabel(job)}</span>
       </div>
     </Link>
   )

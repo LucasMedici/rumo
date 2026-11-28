@@ -12,8 +12,8 @@ import { useJob } from '../api'
 import {
   countryName,
   EMPLOYMENT_TYPE_LABELS,
-  formatRelativeDate,
   formatSalary,
+  jobDateLabel,
   SENIORITY_LABELS,
   WORK_MODE_LABELS,
 } from '../format'
@@ -79,9 +79,7 @@ export function JobDetailView() {
                 {source.key === 'manual' ? 'Importada por você' : source.name}
               </Badge>
             ))}
-            <span className="text-muted-foreground text-xs">
-              Adicionada {formatRelativeDate(job.addedAt)}
-            </span>
+            <span className="text-muted-foreground text-xs">{jobDateLabel(job)}</span>
           </div>
         </div>
 

@@ -15,7 +15,13 @@ import type { JobsService } from './jobs.service.js'
 type Deps = {
   jobsService: Pick<
     JobsService,
-    'importManual' | 'listForUser' | 'getForUser' | 'updateManual' | 'removeFromUser'
+    | 'importManual'
+    | 'listForUser'
+    | 'discoverForUser'
+    | 'getForUser'
+    | 'saveForUser'
+    | 'updateManual'
+    | 'removeFromUser'
   >
   usersService: Pick<UsersService, 'syncFromIdentity'>
   requireAuth: preValidationAsyncHookHandler
@@ -44,6 +50,18 @@ export const jobsRoutes =
       '/jobs',
       { schema: { querystring: listJobsQuerySchema, response: { 200: jobListResponseSchema } } },
       async (request) => jobsService.listForUser(getAuth(request).userId, request.query),
+    )
+
+    app.get(
+      '/discover',
+      { schema: { querystring: listJobsQuerySchema, response: { 200: jobListResponseSchema } } },
+      async (request) => jobsService.discoverForUser(getAuth(request).userId, request.query),
+    )
+
+    app.post(
+      '/jobs/:id/save',
+      { schema: { params: jobIdParamsSchema, response: { 200: jobDetailSchema } } },
+      async (request) => jobsService.saveForUser(getAuth(request).userId, request.params.id),
     )
 
     app.get(

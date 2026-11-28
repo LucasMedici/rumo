@@ -72,8 +72,10 @@ export function createGithubIssuesAdapter({
 
         const items = z.array(z.unknown()).parse(await http.getJson(url, { headers }))
         for (const item of items) {
-          const issue = item as Partial<Issue> & { pull_request?: unknown }
+          const issue = item as Partial<Issue> & { pull_request?: unknown; locked?: boolean }
           if (issue.pull_request) continue // the issues endpoint also returns pull requests
+          // Locked issues are the repo's own notices ("Regras para divulgação de vagas"), not jobs.
+          if (issue.locked) continue
           if (keywords.length > 0 && !matchesKeywords(issue, keywords)) continue
           yield { externalId: `${config.repo}#${issue.number}`, payload: item }
           if (++yielded >= config.maxResults) return

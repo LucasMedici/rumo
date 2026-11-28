@@ -136,8 +136,14 @@ export const jobSummarySchema = z.object({
   employmentType: employmentTypeSchema.nullable(),
   salary: salarySchema.nullable(),
   status: jobStatusSchema,
-  /** When the job entered the user's list. */
-  addedAt: z.iso.datetime(),
+  /** In the user's list ("Minhas vagas": saved or imported). */
+  inList: z.boolean(),
+  /** When the job entered the user's list; null when it is not in the list. */
+  addedAt: z.iso.datetime().nullable(),
+  /** When the user's saved searches first found it; null for jobs only imported manually. */
+  foundAt: z.iso.datetime().nullable(),
+  /** Where the job comes from (attribution: "via Remotive"). */
+  sources: z.array(z.object({ key: z.string(), name: z.string(), url: z.string().nullable() })),
 })
 export type JobSummary = z.infer<typeof jobSummarySchema>
 
@@ -147,7 +153,6 @@ export const jobDetailSchema = jobSummarySchema.extend({
   applyUrl: z.string().nullable(),
   postedAt: z.iso.datetime().nullable(),
   firstSeenAt: z.iso.datetime(),
-  sources: z.array(z.object({ key: z.string(), name: z.string(), url: z.string().nullable() })),
   /** Manually imported by the current user, so it can be edited. */
   editable: z.boolean(),
 })

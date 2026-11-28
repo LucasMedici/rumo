@@ -42,6 +42,10 @@ function jobRow(overrides: Record<string, unknown> = {}) {
         source: { key: 'manual', name: 'Manual import' },
       },
     ],
+    /** The user's list entry (present = in "Minhas vagas"). */
+    users: [{ createdAt: NOW }] as { createdAt: Date }[],
+    /** First time the user's searches found it (empty = never). */
+    feeds: [] as { firstSeenAt: Date }[],
     ...overrides,
   }
 }
@@ -62,6 +66,8 @@ function fakePrisma() {
     job: {
       create: vi.fn().mockResolvedValue({ id: JOB_ID }),
       update: vi.fn().mockResolvedValue({}),
+      findFirst: vi.fn().mockResolvedValue(jobRow()),
+      findMany: vi.fn().mockResolvedValue([]),
     },
     jobListing: {
       create: vi.fn().mockResolvedValue({}),
@@ -69,8 +75,8 @@ function fakePrisma() {
     },
     userJob: {
       create: vi.fn().mockResolvedValue({}),
-      findUnique: vi.fn().mockResolvedValue(userJobRow()),
       findMany: vi.fn().mockResolvedValue([]),
+      upsert: vi.fn().mockResolvedValue({}),
       deleteMany: vi.fn().mockResolvedValue({ count: 1 }),
     },
     $transaction: vi.fn(),
@@ -192,15 +198,15 @@ describe('listForUser', () => {
 })
 
 describe('getForUser', () => {
-  it('throws NotFound when the job is not in the user list', async () => {
-    db.userJob.findUnique.mockResolvedValue(null)
+  it('throws NotFound when the user can neither list nor discover the job', async () => {
+    db.job.findFirst.mockResolvedValue(null)
 
     await expect(service.getForUser(USER_ID, JOB_ID)).rejects.toBeInstanceOf(NotFoundError)
   })
 
   it('is not editable when the job came from another source or another user', async () => {
-    db.userJob.findUnique.mockResolvedValue(
-      userJobRow({
+    db.job.findFirst.mockResolvedValue(
+      jobRow({
         listings: [
           {
             sourceKey: 'manual',
@@ -222,6 +228,93 @@ describe('getForUser', () => {
 
     expect(job.editable).toBe(false)
     expect(job.sources.map((s) => s.key)).toEqual(['manual', 'greenhouse'])
+  })
+})
+
+describe('access rule', () => {
+  it('finds jobs in the user list OR found by the user searches, scoped by user', async () => {
+    await service.getForUser(USER_ID, JOB_ID)
+
+    expect(db.job.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          id: JOB_ID,
+          OR: [
+            { users: { some: { userId: USER_ID } } },
+            { feeds: { some: { feed: { userId: USER_ID } } } },
+          ],
+        },
+      }),
+    )
+  })
+
+  it('a discovered job (not saved) is not in the list but has foundAt', async () => {
+    const found = new Date('2026-11-27T10:00:00Z')
+    db.job.findFirst.mockResolvedValue(jobRow({ users: [], feeds: [{ firstSeenAt: found }] }))
+
+    const job = await service.getForUser(USER_ID, JOB_ID)
+
+    expect(job).toMatchObject({ inList: false, addedAt: null, foundAt: found.toISOString() })
+  })
+})
+
+describe('discoverForUser', () => {
+  const ids = [
+    '019abc12-0000-7000-8000-000000000003',
+    '019abc12-0000-7000-8000-000000000002',
+    '019abc12-0000-7000-8000-000000000001',
+  ]
+
+  it('lists jobs found by the user searches, newest first, with a cursor', async () => {
+    db.job.findMany.mockResolvedValue(ids.map((id) => jobRow({ id, users: [] })))
+
+    const page = await service.discoverForUser(USER_ID, { limit: 2 })
+
+    expect(page.items.map((job) => job.id)).toEqual(ids.slice(0, 2))
+    expect(page.items[0]?.inList).toBe(false)
+    expect(page.nextCursor).toBe(ids[1])
+    expect(db.job.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { feeds: { some: { feed: { userId: USER_ID } } } },
+        orderBy: [{ firstSeenAt: 'desc' }, { id: 'desc' }],
+        take: 3,
+      }),
+    )
+  })
+
+  it('continues after the cursor', async () => {
+    await service.discoverForUser(USER_ID, { limit: 2, cursor: ids[1] })
+
+    expect(db.job.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ cursor: { id: ids[1] }, skip: 1 }),
+    )
+  })
+
+  it('keeps saved jobs flagged as in the list', async () => {
+    db.job.findMany.mockResolvedValue([jobRow({ id: ids[0] })])
+
+    const { items } = await service.discoverForUser(USER_ID, { limit: 10 })
+
+    expect(items[0]).toMatchObject({ inList: true, addedAt: NOW.toISOString() })
+  })
+})
+
+describe('saveForUser', () => {
+  it('adds an accessible job to the list (idempotent upsert)', async () => {
+    await service.saveForUser(USER_ID, JOB_ID)
+
+    expect(db.userJob.upsert).toHaveBeenCalledWith({
+      where: { userId_jobId: { userId: USER_ID, jobId: JOB_ID } },
+      create: { userId: USER_ID, jobId: JOB_ID, origin: 'saved' },
+      update: {},
+    })
+  })
+
+  it('refuses jobs the user cannot see (e.g. found by another user searches)', async () => {
+    db.job.findFirst.mockResolvedValue(null)
+
+    await expect(service.saveForUser(USER_ID, JOB_ID)).rejects.toBeInstanceOf(NotFoundError)
+    expect(db.userJob.upsert).not.toHaveBeenCalled()
   })
 })
 
@@ -253,8 +346,8 @@ describe('updateManual', () => {
   })
 
   it('validates the salary merged with the stored values', async () => {
-    db.userJob.findUnique.mockResolvedValue(
-      userJobRow({
+    db.job.findFirst.mockResolvedValue(
+      jobRow({
         salaryMin: 10000,
         salaryMax: 12000,
         salaryCurrency: 'BRL',
@@ -272,8 +365,8 @@ describe('updateManual', () => {
   })
 
   it('refuses to edit jobs the user did not import', async () => {
-    db.userJob.findUnique.mockResolvedValue(
-      userJobRow({
+    db.job.findFirst.mockResolvedValue(
+      jobRow({
         listings: [
           {
             sourceKey: 'greenhouse',

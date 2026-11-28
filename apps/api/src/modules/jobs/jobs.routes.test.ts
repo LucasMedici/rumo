@@ -29,7 +29,9 @@ const detail: JobDetail = {
   employmentType: 'full_time',
   salary: { min: 120000, max: 150000, currency: 'USD', period: 'year' },
   status: 'open',
+  inList: true,
   addedAt: '2026-11-25T00:00:00.000Z',
+  foundAt: null,
   description: 'Build and scale our Node.js APIs.',
   applyUrl: 'https://boards.greenhouse.io/acme/jobs/1',
   postedAt: null,
@@ -55,6 +57,8 @@ function setup() {
   const jobsService = {
     importManual: vi.fn().mockResolvedValue(detail),
     listForUser: vi.fn().mockResolvedValue({ items: [], nextCursor: null }),
+    discoverForUser: vi.fn().mockResolvedValue({ items: [], nextCursor: null }),
+    saveForUser: vi.fn().mockResolvedValue(detail),
     getForUser: vi.fn().mockResolvedValue(detail),
     updateManual: vi.fn().mockResolvedValue(detail),
     removeFromUser: vi.fn().mockResolvedValue(undefined),
@@ -80,6 +84,8 @@ describe('jobs routes: authentication', () => {
     ['GET', `/jobs/${JOB_ID}`],
     ['PATCH', `/jobs/${JOB_ID}`],
     ['DELETE', `/jobs/${JOB_ID}`],
+    ['GET', '/discover'],
+    ['POST', `/jobs/${JOB_ID}/save`],
   ] as const)('%s %s requires a token', async (method, url) => {
     const response = await buildTestApp().inject({ method, url })
     expect(response.statusCode).toBe(401)
@@ -221,5 +227,46 @@ describe('DELETE /jobs/:id', () => {
     expect(response.statusCode).toBe(204)
     expect(response.body).toBe('')
     expect(ctx.jobsService.removeFromUser).toHaveBeenCalledWith(USER_ID, JOB_ID)
+  })
+})
+
+describe('GET /discover', () => {
+  it('lists jobs found by the user searches with pagination', async () => {
+    const response = await ctx.app.inject({
+      method: 'GET',
+      url: `/discover?limit=10&cursor=${JOB_ID}`,
+      headers: AUTH,
+    })
+
+    expect(response.statusCode).toBe(200)
+    expect(ctx.jobsService.discoverForUser).toHaveBeenCalledWith(USER_ID, {
+      limit: 10,
+      cursor: JOB_ID,
+    })
+  })
+})
+
+describe('POST /jobs/:id/save', () => {
+  it('saves the job to the list', async () => {
+    const response = await ctx.app.inject({
+      method: 'POST',
+      url: `/jobs/${JOB_ID}/save`,
+      headers: AUTH,
+    })
+
+    expect(response.statusCode).toBe(200)
+    expect(ctx.jobsService.saveForUser).toHaveBeenCalledWith(USER_ID, JOB_ID)
+  })
+
+  it('returns 404 for jobs the user cannot see', async () => {
+    ctx.jobsService.saveForUser.mockRejectedValue(new NotFoundError('Job'))
+
+    const response = await ctx.app.inject({
+      method: 'POST',
+      url: `/jobs/${JOB_ID}/save`,
+      headers: AUTH,
+    })
+
+    expect(response.statusCode).toBe(404)
   })
 })
